@@ -1,25 +1,37 @@
 ---
+export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import Nav from '../../components/Nav.astro';
 import { Image } from 'astro:assets';
 import placeholderImage from '../../assets/placeholder-image.svg';
 import { getContentfulPhotos } from '../../lib/contentful';
 
-export async function getStaticPaths() {
-  const fallbackIds = ['photo-1', 'photo-2', 'photo-3', 'photo-4', 'photo-5', 'photo-6', 'photo-7', 'photo-8', 'photo-9'];
-  const contentfulPhotos = await getContentfulPhotos();
-  const ids = contentfulPhotos.length > 0 ? contentfulPhotos.map((photo) => photo.id) : fallbackIds;
-
-  return ids.map((id) => ({
-    params: { id_of_the_photo: id },
-  }));
-}
+const caretLeft = '/src/assets/caret_left.svg';
+const caretRight = '/src/assets/caret_right.svg';
 
 const { id_of_the_photo } = Astro.params;
 const photos = await getContentfulPhotos();
 const selectedPhoto = photos.find((photo) => photo.id === id_of_the_photo);
+const photoIds = photos.length > 0 ? photos.map((photo) => photo.id) : ['photo-1', 'photo-2', 'photo-3', 'photo-4', 'photo-5', 'photo-6', 'photo-7', 'photo-8', 'photo-9'];
+const photoById = new Map(photos.map((photo) => [photo.id, photo]));
+const currentIndexRaw = photoIds.indexOf(id_of_the_photo ?? '');
+const currentIndex = currentIndexRaw >= 0 ? currentIndexRaw : 0;
+const hasLoopCarouselNav = photoIds.length > 1;
+const leftLoopId = hasLoopCarouselNav ? photoIds[(currentIndex + 1) % photoIds.length] : null;
+const rightLoopId = hasLoopCarouselNav ? photoIds[(currentIndex - 1 + photoIds.length) % photoIds.length] : null;
+const navWindowSize = Math.min(3, photoIds.length);
+const navWindowStart = Math.max(0, Math.min(currentIndex - 1, photoIds.length - navWindowSize));
+const navItems = photoIds.slice(navWindowStart, navWindowStart + navWindowSize).map((id) => {
+  const photo = photoById.get(id);
+  const isActive = id === id_of_the_photo;
+  return {
+    title: photo?.title ?? id,
+    href: isActive ? undefined : `/photo/${encodeURIComponent(id)}`,
+    active: isActive,
+  };
+});
 const title = selectedPhoto?.title ?? id_of_the_photo;
-const description = selectedPhoto?.description ?? `Viewing ${id_of_the_photo}.`;
+const description = selectedPhoto?.description ?? '';
 const focalLength = selectedPhoto?.focalLength;
 const shutterSpeed = selectedPhoto?.shutterSpeed;
 const iso = selectedPhoto?.iso;
@@ -48,12 +60,37 @@ const exposureLine =
 
 <Layout title={`Photo ${title} | Henks Photography`} description={description}>
   <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
-    <Nav activeTab="photography" />
+    <Nav
+      activeTab="photography"
+      photoNav={{
+        items: navItems,
+      }}
+    />
 
     <section class="pt-12">
       {exposureLine ? <p class="text-base text-stone-600">{exposureLine}</p> : null}
 
-      <div class="mt-8 overflow-hidden bg-stone-200">
+      <div class="relative mt-8 overflow-hidden bg-stone-200">
+        {
+          leftLoopId && rightLoopId ? (
+            <>
+              <a
+                href={`/photo/${encodeURIComponent(leftLoopId)}`}
+                aria-label="Next photo"
+                class="absolute top-1/2 left-4 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center transition-opacity hover:opacity-70"
+              >
+                <img src={caretLeft} alt="" class="h-6 w-6" />
+              </a>
+              <a
+                href={`/photo/${encodeURIComponent(rightLoopId)}`}
+                aria-label="Previous photo"
+                class="absolute top-1/2 right-4 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center transition-opacity hover:opacity-70"
+              >
+                <img src={caretRight} alt="" class="h-6 w-6" />
+              </a>
+            </>
+          ) : null
+        }
         {
           selectedPhoto ? (
             <Image
@@ -69,12 +106,7 @@ const exposureLine =
         }
       </div>
 
-      <a
-        href="/"
-        class="mt-6 inline-block text-sm text-stone-600 underline decoration-stone-400 underline-offset-4 hover:text-stone-900"
-      >
-        Back to gallery
-      </a>
+      {description ? <p class="mt-6 max-w-3xl text-sm leading-relaxed text-stone-600">{description}</p> : null}
     </section>
   </main>
 </Layout>

@@ -1,14 +1,108 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
+
+const timeline = [
+  {
+    placement: 'Lyftio.com',
+    date: 'apr 2025 → Present',
+    title: 'Founder & Front-End Product Developer',
+    description: 'Built and launched a SaaS experimentation platform with a strong focus on usability, performance, and AI-powered conversion optimization.',
+    bullets: ['Designed and developed modern, responsive user interfaces using SolidJS, Astro, and CSS.', 'Built reusable UI components and scalable front-end architecture', 'Built and maintained a scalable UI library in Figma, including reusable components, design tokens, and consistent interaction patterns', 'Translated UX concepts into high-performing production-ready interfaces', 'Developed features for A/B testing, experiment management, and results visualization', 'Focused on performance, fast load times, and intuitive user flows', 'Worked closely with CRO methodologies to ensure designs drive measurable impact'],
+  },
+  {
+    placement: 'Symplify.com',
+    date: 'sep 2021 → apr 2025',
+    title: 'Front-End Developer',
+    description: 'Built and maintained a SaaS communication platform',
+    bullets: ['Developed a new UI built in react.','Maintained UI library in Figma','Worked in close cooperation with marketing and delivered high scale conference displays all around the world.']
+  },
+  {
+    placement: 'Upsales.com',
+    date: 'jan 2018 → sep 2021',
+    title: 'UX & UI designer',
+    description: 'Built and maintained a CRM & marketing platform',
+    bullets: ['Worked in the design team building UI libraries and assets for tech teams', 'Conducted extensive UX research using both quantitive and qualitative research methods']
+  },
+  {
+    placement: 'Knife&Fork.se',
+    date: 'jan 2017 → jan 2018',
+    title: 'Founder, UX & Front-End Developer',
+    description: 'Built a tool for recruiting staff within the service industry',
+    bullets: ['Built and maintained a web app using React']
+  },
+  {
+    placement: 'Ellmount Interactive',
+    date: '2010 → 2016',
+    title: 'Graphic Designer',
+    description: 'Designed and maintained several e-gaming platforms',
+    bullets: ['Front-end work including PHP, JavaScript and CSS. Lots of focus on payment solutions.','Later switched for more operational role as CPO.']
+  },
+  {
+    placement: 'Bwin Games AB',
+    date: '2008 → 2010',
+    title: 'Graphic Designer',
+    description: 'Worked in Creatives. Delivering production ready solutions for dev teams',
+    },
+    {
+    placement: 'Nilson Group AB',
+    date: '2007 → 2008',
+    title: 'Graphic Designer',
+    description: 'Worked in the marketing department building and maintaining Nilson Groups different e-com sites.',
+    },
+     {
+    placement: 'HB Deck13',
+    date: '2003 → 2006',
+    title: 'Founder & Graphic Designer',
+    description: 'Helped local businesses with their digital presence',
+    },
+    {
+    placement: 'Halogen Sverige AB',
+    date: '2003 → 2004',
+    title: 'Interface Developer',
+    },
+    {
+    placement: 'Teledrom AB',
+    date: '2000 → 2003',
+    title: 'Web Designer',
+    },
+];
 ---
 
 <Layout title="About | Henks Photography" description="About Henrik Löthman and this photography portfolio.">
-  <main class="mx-auto max-w-[1280px] px-6 pb-20 pt-[69px]">
+  <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
     <Nav activeTab="about" />
-    <section class="pt-16">
-      <h1 class="text-3xl font-medium text-stone-700">About</h1>
-      <p class="mt-4 text-base text-stone-500">More about Henrik and the work will be added soon.</p>
+    <section class="pt-16 space-y-12">
+      <h1 class="text-4xl text-black">Hi, I'm Henrik</h1>
+      <p class="mt-4 text-4xl text-slate-500 leading-relaxed">I work as a engineer at <a href="https://www.lyftio.com" class="text-black underline" target="_blank">Lyftio.com</a> where I focus on UI/UX. I do photography as a hobby where I tend to update my instagram more often than this Astro.js application hosted on Vercel and Contentful as CMS.</p>
+    </section>
+    <section class="pt-16 space-y-12">
+      <p class="text-black text-lg font-semibold">Stuff I've done</p>
+      <div class="space-y-12">
+        {
+          timeline.map((item) => (
+            <article class="grid grid-cols-[120px_1fr] gap-y-4 gap-x-16 sm:grid-cols-[160px_1fr] sm:gap-x-32">
+              <div class="space-y-2">
+                {item.placement ? <p class=" text-black">{item.placement}</p> : null}
+                <p class="text-slate-500 text-sm">{item.date}</p>
+              </div>
+              <div class="w-full max-w-2xl justify-self-center text-left">
+                <h2 class="text-lg text-black">{item.title}</h2>
+                <p class="mt-1 text-base leading-relaxed text-slate-600">{item.description}</p>
+                {
+                  item.bullets?.length ? (
+                    <ul class="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-500">
+                      {item.bullets.map((bullet) => (
+                        <li>{bullet}</li>
+                      ))}
+                    </ul>
+                  ) : null
+                }
+              </div>
+            </article>
+          ))
+        }
+      </div>
     </section>
   </main>
 </Layout>

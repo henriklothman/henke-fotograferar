@@ -1,32 +1,72 @@
 ---
 const Logo = "/src/assets/logo_light.svg";
+const HenksLogo = "/src/assets/henks.png";
+const Cross = "/src/assets/cross.svg";
 
 interface Props {
   className?: string;
   activeTab?: 'photography' | 'folks' | 'about';
+  photoNav?: {
+    items: Array<{
+      title: string;
+      href?: string;
+      active?: boolean;
+    }>;
+  };
 }
 
-const { className = '', activeTab = 'photography' } = Astro.props;
+const { className = '', activeTab = 'photography', photoNav } = Astro.props;
+const subNavItems = photoNav?.items ?? [];
+const navLogo = activeTab === 'about' ? HenksLogo : Logo;
 ---
 
 <nav class={`relative flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between ${className}`} data-name="Nav">
   <a href="/" class="relative h-18 w-18 shrink-0 transition-transform duration-200 hover:rotate-15">
-    <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={Logo} />
+    <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={navLogo} />
   </a>
 
-  <div class="flex flex-row items-center justify-center gap-5 sm:gap-7">
-    <a href="/" class="flex items-center gap-2.5">
-      <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}></div>
-      <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>Photography</p>
-    </a>
+  <div class="grid w-full grid-cols-[auto_auto] items-start justify-center gap-x-5 sm:w-auto sm:justify-start sm:gap-x-7">
+      <a href="/" class="col-start-1 row-start-1 flex items-center gap-2.5">
+        {
+          photoNav && activeTab === 'photography' ? (
+            <img src={Cross} alt="" class="h-2.5 w-2.5 opacity-90" />
+          ) : (
+            <div
+              class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}
+            ></div>
+          )
+        }
+        <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>
+          Photography
+        </p>
+      </a>
 
-    <a href="/folks" class="flex items-center gap-2.5">
-      <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'folks' ? 'opacity-100' : 'opacity-0'}`}></div>
-      <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'folks' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>Folks</p>
-    </a>
-    <a href="/about" class="flex items-center gap-2.5">
-      <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
-      <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
-    </a>
+      <a href="/about" class="col-start-2 row-start-1 flex items-center gap-2.5">
+        <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
+        <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
+      </a>
+
+    {
+      photoNav ? (
+        <div class="col-start-1 row-start-2 mt-3 ml-0.5 justify-self-start">
+          {
+            subNavItems.map((item, index) => {
+              const isLast = index === subNavItems.length - 1;
+              const connectorClass = isLast ? 'after:h-1/2' : 'after:h-full';
+
+              return item.href ? (
+                <a href={item.href} class={`relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug transition-opacity before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} hover:opacity-70 ${item.active ? 'font-medium text-black' : 'text-slate-500'}`}>
+                  <span>{item.title}</span>
+                </a>
+              ) : (
+                <p class={`relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500'}`}>
+                  <span>{item.title}</span>
+                </p>
+              );
+            })
+          }
+        </div>
+      ) : null
+    }
   </div>
 </nav>

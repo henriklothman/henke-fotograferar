@@ -40,7 +40,6 @@ interface ContentfulResponse {
   };
 }
 
-let cachedPhotos: Promise<PhotoItem[]> | null = null;
 const CONTENTFUL_TIMEOUT_MS = 8000;
 
 function getLocalizedValue(value: unknown, locale: string): unknown {
@@ -128,7 +127,29 @@ function toStringValue(value: unknown): string | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return String(value);
   }
+  if (value && typeof value === 'object') {
+    const maybeRichText = value as { nodeType?: unknown; content?: unknown };
+    if (typeof maybeRichText.nodeType === 'string' && Array.isArray(maybeRichText.content)) {
+      const text = readRichTextText(maybeRichText).trim();
+      return text.length > 0 ? text : undefined;
+    }
+  }
   return undefined;
+}
+
+function readRichTextText(node: unknown): string {
+  if (!node || typeof node !== 'object') return '';
+  const richNode = node as { nodeType?: unknown; value?: unknown; content?: unknown };
+
+  if (richNode.nodeType === 'text' && typeof richNode.value === 'string') {
+    return richNode.value;
+  }
+
+  if (!Array.isArray(richNode.content)) return '';
+
+  const childTexts = richNode.content.map((child) => readRichTextText(child)).filter((part) => part.length > 0);
+  const joiner = richNode.nodeType === 'paragraph' ? '' : '\n';
+  return childTexts.join(joiner);
 }
 
 async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
@@ -205,11 +226,8 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
     const altCandidate = firstDefinedValue(fields, locale, ['alt', 'altText', 'description']);
     const alt = typeof altCandidate === 'string' && altCandidate.trim().length > 0 ? altCandidate : title;
 
-    const descriptionCandidate = firstDefinedValue(fields, locale, ['description', 'body', 'caption']);
-    const description =
-      typeof descriptionCandidate === 'string' && descriptionCandidate.trim().length > 0
-        ? descriptionCandidate
-        : undefined;
+    const descriptionCandidate = firstDefinedValue(fields, locale, ['description', 'body', 'caption', 'location']);
+    const description = toStringValue(descriptionCandidate);
     const focalLength = toStringValue(firstDefinedValue(fields, locale, ['focalLength']));
     const shutterSpeed = toStringValue(firstDefinedValue(fields, locale, ['shutterSpeed']));
     const iso = toStringValue(firstDefinedValue(fields, locale, ['iso', 'ISO']));
@@ -232,12 +250,5 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
 }
 
 export async function getContentfulPhotos(): Promise<PhotoItem[]> {
-  if (!cachedPhotos) {
-    cachedPhotos = fetchContentfulPhotos();
-  }
-  const photos = await cachedPhotos;
-  if (photos.length === 0) {
-    cachedPhotos = null;
-  }
-  return photos;
+  return fetchContentfulPhotos();
 }
