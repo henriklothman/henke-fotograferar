@@ -1,0 +1,32 @@
+---
+const Logo = "/src/assets/logo_light.svg";
+
+interface Props {
+  className?: string;
+  activeTab?: 'photography' | 'folks' | 'about';
+}
+
+const { className = '', activeTab = 'photography' } = Astro.props;
+---
+
+<nav class={`relative flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between ${className}`} data-name="Nav">
+  <a href="/" class="relative h-18 w-18 shrink-0 transition-transform duration-200 hover:rotate-15">
+    <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={Logo} />
+  </a>
+
+  <div class="flex flex-row items-center justify-center gap-5 sm:gap-7">
+    <a href="/" class="flex items-center gap-2.5">
+      <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}></div>
+      <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>Photography</p>
+    </a>
+
+    <a href="/folks" class="flex items-center gap-2.5">
+      <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'folks' ? 'opacity-100' : 'opacity-0'}`}></div>
+      <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'folks' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>Folks</p>
+    </a>
+    <a href="/about" class="flex items-center gap-2.5">
+      <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
+      <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
+    </a>
+  </div>
+</nav>

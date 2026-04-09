@@ -1,11 +1,59 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import MasonryImage from '../components/MasonryImage.astro';
+import placeholderImage from '../assets/placeholder-image.svg';
+import { getContentfulPhotos } from '../lib/contentful';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const fallbackItems = [
+  { id: 'photo-1', title: 'Placeholder photograph 1', aspect: '3 / 4', alt: 'Placeholder photograph 1', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-2', title: 'Placeholder photograph 2', aspect: '4 / 3', alt: 'Placeholder photograph 2', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-3', title: 'Placeholder photograph 3', aspect: '1 / 1', alt: 'Placeholder photograph 3', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-4', title: 'Placeholder photograph 4', aspect: '2 / 3', alt: 'Placeholder photograph 4', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-5', title: 'Placeholder photograph 5', aspect: '3 / 2', alt: 'Placeholder photograph 5', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-6', title: 'Placeholder photograph 6', aspect: '4 / 5', alt: 'Placeholder photograph 6', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-7', title: 'Placeholder photograph 7', aspect: '5 / 4', alt: 'Placeholder photograph 7', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-8', title: 'Placeholder photograph 8', aspect: '3 / 5', alt: 'Placeholder photograph 8', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-9', title: 'Placeholder photograph 9', aspect: '16 / 10', alt: 'Placeholder photograph 9', src: placeholderImage, width: 1200, height: 900 },
+];
+
+const contentfulPhotos = await getContentfulPhotos();
+
+const masonryItems =
+  contentfulPhotos.length > 0
+    ? contentfulPhotos.map((photo) => ({
+        id: photo.id,
+        title: photo.title,
+        aspect: `${photo.width} / ${photo.height}`,
+        alt: photo.alt,
+        src: photo.imageUrl,
+        width: photo.width,
+        height: photo.height,
+      }))
+    : fallbackItems;
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Henks Photography" description="Selected work from the Henks layout.">
+  <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
+    <Nav activeTab="photography" />
+
+    <section class="pt-12">
+      <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
+        {
+          masonryItems.map((item) => (
+            <MasonryImage
+              src={item.src}
+              alt={item.alt}
+              title={item.title}
+              aspect={item.aspect}
+              width={item.width}
+              height={item.height}
+              href={`/photo/${encodeURIComponent(item.id)}`}
+              className="mb-4 break-inside-avoid"
+            />
+          ))
+        }
+      </div>
+    </section>
+  </main>
 </Layout>

@@ -1,0 +1,37 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata | string;
+  alt: string;
+  title?: string;
+  aspect?: string;
+  width?: number;
+  height?: number;
+  href?: string;
+  className?: string;
+}
+
+const { src, alt, title, aspect = '3 / 4', width = 1200, height = 900, href, className = '' } = Astro.props;
+---
+
+<figure
+  class={`group relative w-full overflow-hidden bg-stone-200 ${className}`}
+  style={`aspect-ratio: ${aspect};`}
+>
+  {href ? (
+    <a href={href} class="block h-full w-full">
+      <Image src={src} alt={alt} width={width} height={height} class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+    </a>
+  ) : (
+    <Image src={src} alt={alt} width={width} height={height} class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+  )}
+  {
+    title ? (
+      <figcaption class="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/35 px-4 py-3 text-center text-stone-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <span class="bg-black/85 px-3 py-1.5 text-xl font-medium leading-tight">{title}</span>
+      </figcaption>
+    ) : null
+  }
+</figure>
