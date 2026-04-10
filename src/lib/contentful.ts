@@ -6,8 +6,15 @@ export interface PhotoItem {
   width: number;
   height: number;
   description?: string;
+  location?: string;
+  locationLat?: number;
+  locationLon?: number;
+  targetLocationLat?: number;
+  targetLocationLon?: number;
+  rotation?: number;
   focalLength?: string;
   shutterSpeed?: string;
+  aperture?: string;
   iso?: string;
 }
 
@@ -119,6 +126,15 @@ function toNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function toNumericValue(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
 function toStringValue(value: unknown): string | undefined {
   if (typeof value === 'string') {
     const trimmed = value.trim();
@@ -133,6 +149,15 @@ function toStringValue(value: unknown): string | undefined {
       const text = readRichTextText(maybeRichText).trim();
       return text.length > 0 ? text : undefined;
     }
+  }
+  return undefined;
+}
+
+function toLocationCoordinates(value: unknown): { lat: number; lon: number } | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const maybeLocation = value as { lat?: unknown; lon?: unknown };
+  if (typeof maybeLocation.lat === 'number' && Number.isFinite(maybeLocation.lat) && typeof maybeLocation.lon === 'number' && Number.isFinite(maybeLocation.lon)) {
+    return { lat: maybeLocation.lat, lon: maybeLocation.lon };
   }
   return undefined;
 }
@@ -226,10 +251,31 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
     const altCandidate = firstDefinedValue(fields, locale, ['alt', 'altText', 'description']);
     const alt = typeof altCandidate === 'string' && altCandidate.trim().length > 0 ? altCandidate : title;
 
-    const descriptionCandidate = firstDefinedValue(fields, locale, ['description', 'body', 'caption', 'location']);
+    const descriptionCandidate = firstDefinedValue(fields, locale, ['description', 'body', 'caption']);
     const description = toStringValue(descriptionCandidate);
+    const locationRaw = firstDefinedValue(fields, locale, ['location', 'place']);
+    const location = toStringValue(locationRaw);
+    const locationCoordinates = toLocationCoordinates(locationRaw);
+    const targetLocationRaw = firstDefinedValue(fields, locale, ['targetLocation']);
+    const targetLocationCoordinates = toLocationCoordinates(targetLocationRaw);
+    const rotation = toNumericValue(firstDefinedValue(fields, locale, ['rotation', 'rotationAngle']));
     const focalLength = toStringValue(firstDefinedValue(fields, locale, ['focalLength']));
     const shutterSpeed = toStringValue(firstDefinedValue(fields, locale, ['shutterSpeed']));
+    const aperture = toStringValue(
+      firstDefinedValue(fields, locale, [
+        'aperture',
+        'aperture2',
+        'apperture',
+        'aperature',
+        'fStop',
+        'fstop',
+        'f-stop',
+        'f_stop',
+        'fNumber',
+        'fnumber',
+        'fNumberValue',
+      ]),
+    );
     const iso = toStringValue(firstDefinedValue(fields, locale, ['iso', 'ISO']));
 
     photos.push({
@@ -240,8 +286,15 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
       width,
       height,
       description,
+      location: location ?? (locationCoordinates ? `${locationCoordinates.lat},${locationCoordinates.lon}` : undefined),
+      locationLat: locationCoordinates?.lat,
+      locationLon: locationCoordinates?.lon,
+      targetLocationLat: targetLocationCoordinates?.lat,
+      targetLocationLon: targetLocationCoordinates?.lon,
+      rotation,
       focalLength,
       shutterSpeed,
+      aperture,
       iso,
     });
   }

@@ -1,7 +1,10 @@
 ---
 const Logo = "/src/assets/logo_light.svg";
+const LogoDark = "/src/assets/logo_dark.svg";
 const HenksLogo = "/src/assets/henks.png";
 const Cross = "/src/assets/cross.svg";
+const MoonStar = "/src/assets/moon_star.svg";
+const Sun = "/src/assets/sun.svg";
 
 interface Props {
   className?: string;
@@ -17,22 +20,35 @@ interface Props {
 
 const { className = '', activeTab = 'photography', photoNav } = Astro.props;
 const subNavItems = photoNav?.items ?? [];
-const navLogo = activeTab === 'about' ? HenksLogo : Logo;
+const isAboutTab = activeTab === 'about';
 ---
 
 <nav class={`relative flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between ${className}`} data-name="Nav">
-  <a href="/" class="relative h-18 w-18 shrink-0 transition-transform duration-200 hover:rotate-15">
-    <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={navLogo} />
+  <a href="/" aria-label="Go to Photography home" class="nav-focusable relative h-18 w-18 shrink-0 rounded-sm transition-transform duration-200 hover:rotate-15">
+    {
+      isAboutTab ? (
+        <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={HenksLogo} />
+      ) : (
+        <>
+          <img alt="Henrik Löthman" class="theme-logo-light absolute inset-0 h-full w-full object-cover" src={Logo} />
+          <img alt="Henrik Löthman" class="theme-logo-dark absolute inset-0 h-full w-full object-cover" src={LogoDark} />
+        </>
+      )
+    }
   </a>
 
-  <div class="grid w-full grid-cols-[auto_auto] items-start justify-center gap-x-5 sm:w-auto sm:justify-start sm:gap-x-7">
-      <a href="/" class="col-start-1 row-start-1 flex items-center gap-2.5">
+  <div class="grid w-full grid-cols-[auto_auto_auto] items-center justify-center gap-x-5 sm:w-auto sm:justify-start sm:gap-x-7">
+      <a href="/" aria-label="Go to Photography" class="nav-focusable col-start-1 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5">
         {
           photoNav && activeTab === 'photography' ? (
-            <img src={Cross} alt="" class="h-2.5 w-2.5 opacity-90" />
+            <span
+              aria-hidden="true"
+              class="nav-cross icon-mask block h-2.5 w-2.5 bg-black opacity-90"
+              style={`--icon-url: url('${Cross}');`}
+            ></span>
           ) : (
             <div
-              class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}
+              class={`nav-active-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}
             ></div>
           )
         }
@@ -41,10 +57,25 @@ const navLogo = activeTab === 'about' ? HenksLogo : Logo;
         </p>
       </a>
 
-      <a href="/about" class="col-start-2 row-start-1 flex items-center gap-2.5">
-        <div class={`h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
+      <a href="/about" aria-label="Go to About" class="nav-focusable col-start-2 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5">
+        <div class={`nav-active-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
         <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
       </a>
+
+      <button
+        type="button"
+        aria-label="Toggle light and dark mode"
+        data-theme-toggle
+        class="nav-focusable col-start-3 row-start-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm"
+      >
+        <span
+          data-theme-icon
+          data-icon-on={Sun}
+          data-icon-off={MoonStar}
+          class="icon-mask block h-5 w-5 bg-black transition-colors"
+          style={`--icon-url: url('${MoonStar}');`}
+        ></span>
+      </button>
 
     {
       photoNav ? (
@@ -55,7 +86,7 @@ const navLogo = activeTab === 'about' ? HenksLogo : Logo;
               const connectorClass = isLast ? 'after:h-1/2' : 'after:h-full';
 
               return item.href ? (
-                <a href={item.href} class={`relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug transition-opacity before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} hover:opacity-70 ${item.active ? 'font-medium text-black' : 'text-slate-500'}`}>
+                <a href={item.href} class={`nav-focusable relative flex items-center gap-3 rounded-sm py-1 pl-4 text-sm leading-snug transition-opacity before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} hover:opacity-70 ${item.active ? 'font-medium text-black' : 'text-slate-500'}`}>
                   <span>{item.title}</span>
                 </a>
               ) : (
@@ -70,3 +101,50 @@ const navLogo = activeTab === 'about' ? HenksLogo : Logo;
     }
   </div>
 </nav>
+
+<style>
+  .icon-mask {
+    -webkit-mask-image: var(--icon-url);
+    mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .theme-logo-dark {
+    display: none;
+  }
+
+  html[data-theme='dark'] .theme-logo-light {
+    display: none;
+  }
+
+  html[data-theme='dark'] .theme-logo-dark {
+    display: block;
+  }
+
+  html[data-theme='dark'] [data-theme-icon] {
+    background-color: #ffffff;
+  }
+
+  html[data-theme='dark'] .nav-active-dot {
+    background-color: #ffffff;
+  }
+
+  html[data-theme='dark'] .nav-cross {
+    background-color: #ffffff;
+  }
+
+  .nav-focusable:focus-visible {
+    outline: 1px solid rgba(17, 24, 39, 0.35);
+    outline-offset: 2px;
+  }
+
+  html[data-theme='dark'] .nav-focusable:focus-visible {
+    outline-color: rgba(255, 255, 255, 0.45);
+  }
+
+</style>

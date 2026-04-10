@@ -73,15 +73,19 @@ const timeline = [
   <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
     <Nav activeTab="about" />
     <section class="pt-16 space-y-12">
-      <h1 class="text-4xl text-black">Hi, I'm Henrik</h1>
-      <p class="mt-4 text-4xl text-slate-500 leading-relaxed">I work as a engineer at <a href="https://www.lyftio.com" class="text-black underline" target="_blank">Lyftio.com</a> where I focus on UI/UX. I do photography as a hobby where I tend to update my instagram more often than this Astro.js application hosted on Vercel and Contentful as CMS.</p>
+      <h1 class="text-2xl text-black sm:text-4xl" data-reveal style="--reveal-delay: 40ms;">Hi, I'm Henrik</h1>
+      <p class="mt-4 text-2xl text-slate-500 leading-relaxed sm:text-4xl" data-reveal style="--reveal-delay: 120ms;">I work as a engineer at <a href="https://www.lyftio.com" class="text-black underline" target="_blank">Lyftio.com</a> where I focus on UI/UX. I do photography as a hobby where I tend to update my instagram more often than this Astro.js application hosted on Vercel and Contentful as CMS.</p>
     </section>
     <section class="pt-16 space-y-12">
-      <p class="text-black text-lg font-semibold">Stuff I've done</p>
+      <p class="text-black text-lg font-semibold" data-reveal style="--reveal-delay: 180ms;">Stuff I've done</p>
       <div class="space-y-12">
         {
-          timeline.map((item) => (
-            <article class="grid grid-cols-[120px_1fr] gap-y-4 gap-x-16 sm:grid-cols-[160px_1fr] sm:gap-x-32">
+          timeline.map((item, index) => (
+            <article
+              class="grid grid-cols-1 gap-y-4 sm:grid-cols-[160px_1fr] sm:gap-x-32"
+              data-reveal
+              style={`--reveal-delay: ${220 + index * 70}ms;`}
+            >
               <div class="space-y-2">
                 {item.placement ? <p class=" text-black">{item.placement}</p> : null}
                 <p class="text-slate-500 text-sm">{item.date}</p>
@@ -106,3 +110,27 @@ const timeline = [
     </section>
   </main>
 </Layout>
+
+<style>
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: reveal-in 520ms ease-out forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  @keyframes reveal-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

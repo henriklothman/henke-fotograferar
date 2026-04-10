@@ -6,16 +6,27 @@ import MasonryImage from '../components/MasonryImage.astro';
 import placeholderImage from '../assets/placeholder-image.svg';
 import { getContentfulPhotos } from '../lib/contentful';
 
+const masonryBackgrounds = ['bg-slate-100 dark:bg-slate-800', 'bg-slate-200 dark:bg-slate-700', 'bg-slate-300 dark:bg-slate-600'];
+
+function pickSeededBackground(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  return masonryBackgrounds[Math.abs(hash) % masonryBackgrounds.length];
+}
+
 const fallbackItems = [
-  { id: 'photo-1', title: 'Placeholder photograph 1', aspect: '3 / 4', alt: 'Placeholder photograph 1', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-2', title: 'Placeholder photograph 2', aspect: '4 / 3', alt: 'Placeholder photograph 2', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-3', title: 'Placeholder photograph 3', aspect: '1 / 1', alt: 'Placeholder photograph 3', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-4', title: 'Placeholder photograph 4', aspect: '2 / 3', alt: 'Placeholder photograph 4', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-5', title: 'Placeholder photograph 5', aspect: '3 / 2', alt: 'Placeholder photograph 5', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-6', title: 'Placeholder photograph 6', aspect: '4 / 5', alt: 'Placeholder photograph 6', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-7', title: 'Placeholder photograph 7', aspect: '5 / 4', alt: 'Placeholder photograph 7', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-8', title: 'Placeholder photograph 8', aspect: '3 / 5', alt: 'Placeholder photograph 8', src: placeholderImage, width: 1200, height: 900 },
-  { id: 'photo-9', title: 'Placeholder photograph 9', aspect: '16 / 10', alt: 'Placeholder photograph 9', src: placeholderImage, width: 1200, height: 900 },
+  { id: 'photo-1', title: 'Placeholder photograph 1', aspect: '3 / 4', alt: 'Placeholder photograph 1', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-1') },
+  { id: 'photo-2', title: 'Placeholder photograph 2', aspect: '4 / 3', alt: 'Placeholder photograph 2', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-2') },
+  { id: 'photo-3', title: 'Placeholder photograph 3', aspect: '1 / 1', alt: 'Placeholder photograph 3', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-3') },
+  { id: 'photo-4', title: 'Placeholder photograph 4', aspect: '2 / 3', alt: 'Placeholder photograph 4', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-4') },
+  { id: 'photo-5', title: 'Placeholder photograph 5', aspect: '3 / 2', alt: 'Placeholder photograph 5', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-5') },
+  { id: 'photo-6', title: 'Placeholder photograph 6', aspect: '4 / 5', alt: 'Placeholder photograph 6', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-6') },
+  { id: 'photo-7', title: 'Placeholder photograph 7', aspect: '5 / 4', alt: 'Placeholder photograph 7', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-7') },
+  { id: 'photo-8', title: 'Placeholder photograph 8', aspect: '3 / 5', alt: 'Placeholder photograph 8', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-8') },
+  { id: 'photo-9', title: 'Placeholder photograph 9', aspect: '16 / 10', alt: 'Placeholder photograph 9', src: placeholderImage, width: 1200, height: 900, bgClass: pickSeededBackground('photo-9') },
 ];
 
 const contentfulPhotos = await getContentfulPhotos();
@@ -30,6 +41,7 @@ const masonryItems =
         src: photo.imageUrl,
         width: photo.width,
         height: photo.height,
+        bgClass: pickSeededBackground(photo.id),
       }))
     : fallbackItems;
 ---
@@ -49,6 +61,7 @@ const masonryItems =
               aspect={item.aspect}
               width={item.width}
               height={item.height}
+              bgClass={item.bgClass}
               href={`/photo/${encodeURIComponent(item.id)}`}
               className="mb-4 break-inside-avoid"
             />

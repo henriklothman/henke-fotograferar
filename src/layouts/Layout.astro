@@ -28,8 +28,62 @@ const {
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <script is:inline>
+      (() => {
+        const STORAGE_KEY = 'theme-preference';
+        try {
+          const storedTheme = localStorage.getItem(STORAGE_KEY);
+          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          const resolvedTheme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : systemTheme;
+          document.documentElement.dataset.theme = resolvedTheme;
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
   </head>
-  <body class="bg-[#f9f8f2] text-stone-700 antialiased" style="font-family: 'Roboto Mono', monospace;">
+  <body class="antialiased" style="font-family: 'Roboto Mono', monospace;">
     <slot />
+    <script is:inline>
+      (() => {
+        const STORAGE_KEY = 'theme-preference';
+
+        const applyTheme = (theme) => {
+          document.documentElement.dataset.theme = theme;
+          document.querySelectorAll('[data-theme-icon]').forEach((iconEl) => {
+            const iconOn = iconEl.getAttribute('data-icon-on');
+            const iconOff = iconEl.getAttribute('data-icon-off');
+            const iconPath = theme === 'dark' ? iconOn : iconOff;
+            if (!iconPath) return;
+            iconEl.style.setProperty('--icon-url', `url('${iconPath}')`);
+          });
+        };
+
+        const toggleTheme = () => {
+          const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+          const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          applyTheme(nextTheme);
+          try {
+            localStorage.setItem(STORAGE_KEY, nextTheme);
+          } catch {
+            // Ignore storage failures.
+          }
+        };
+
+        const initThemeToggles = () => {
+          const currentTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+          applyTheme(currentTheme);
+          document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+            toggle.addEventListener('click', toggleTheme);
+          });
+        };
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initThemeToggles, { once: true });
+        } else {
+          initThemeToggles();
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -1,1 +1,41 @@
 @import "tailwindcss";
+
+:root {
+  --theme-bg: #f9f8f2;
+  --theme-text: #44403c;
+  --theme-text-strong: #000000;
+  --theme-text-muted: #64748b;
+}
+
+html[data-theme='dark'] {
+  --theme-bg: #0f1115;
+  --theme-text: #d6d3d1;
+  --theme-text-strong: #f5f5f4;
+  --theme-text-muted: #94a3b8;
+}
+
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+html[data-theme='dark'] .text-black {
+  color: var(--theme-text-strong) !important;
+}
+
+html[data-theme='dark'] .text-stone-700,
+html[data-theme='dark'] .text-stone-600 {
+  color: var(--theme-text) !important;
+}
+
+html[data-theme='dark'] .text-slate-600,
+html[data-theme='dark'] .text-slate-500,
+html[data-theme='dark'] .text-stone-500 {
+  color: var(--theme-text-muted) !important;
+}
+
+html[data-theme='dark'] .before\:border-black::before,
+html[data-theme='dark'] .after\:border-black::after,
+html[data-theme='dark'] .border-black {
+  border-color: var(--theme-text-strong) !important;
+}

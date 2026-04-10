@@ -8,6 +8,10 @@ import { getContentfulPhotos } from '../../lib/contentful';
 
 const caretLeft = '/src/assets/caret_left.svg';
 const caretRight = '/src/assets/caret_right.svg';
+const cameraIcon = '/src/assets/camera.svg';
+const locationIcon = '/src/assets/location.svg';
+const crossIcon = '/src/assets/cross.svg';
+const henksMarker = '/src/assets/henks.png';
 
 const { id_of_the_photo } = Astro.params;
 const photos = await getContentfulPhotos();
@@ -32,9 +36,33 @@ const navItems = photoIds.slice(navWindowStart, navWindowStart + navWindowSize).
 });
 const title = selectedPhoto?.title ?? id_of_the_photo;
 const description = selectedPhoto?.description ?? '';
+const location = selectedPhoto?.location;
+const locationLat = selectedPhoto?.locationLat;
+const locationLon = selectedPhoto?.locationLon;
+const targetLocationLat = selectedPhoto?.targetLocationLat;
+const targetLocationLon = selectedPhoto?.targetLocationLon;
 const focalLength = selectedPhoto?.focalLength;
 const shutterSpeed = selectedPhoto?.shutterSpeed;
+const aperture = selectedPhoto?.aperture;
 const iso = selectedPhoto?.iso;
+const mediaAspectRatio = selectedPhoto ? `${selectedPhoto.width} / ${selectedPhoto.height}` : '16 / 10';
+const isPortraitMedia = selectedPhoto ? selectedPhoto.height > selectedPhoto.width : false;
+const mediaContentColumnClass = isPortraitMedia ? 'mx-auto w-fit max-w-full' : 'w-full';
+const mediaContainerStyle = isPortraitMedia
+  ? `aspect-ratio: ${mediaAspectRatio}; height: min(70svh, 70vh); width: auto; max-width: 100%; margin-inline: auto;`
+  : `aspect-ratio: ${mediaAspectRatio};`;
+const locationQuery =
+  typeof locationLat === 'number' && typeof locationLon === 'number' ? `${locationLat},${locationLon}` : location;
+const hasCoordinates = typeof locationLat === 'number' && typeof locationLon === 'number';
+const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY ?? '';
+const mapEmbedUrl =
+  typeof locationLat === 'number' && typeof locationLon === 'number'
+    ? `https://www.google.com/maps?ll=${locationLat},${locationLon}&z=15&output=embed`
+    : locationQuery
+      ? `https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&z=15&output=embed`
+      : null;
+const hasInteractiveMap = hasCoordinates;
+const hasMapMedia = Boolean(hasInteractiveMap || mapEmbedUrl);
 
 function ensureUnit(value: string | undefined, suffix: string): string | undefined {
   if (!value) return undefined;
@@ -45,17 +73,27 @@ function ensureUnit(value: string | undefined, suffix: string): string | undefin
 function formatShutter(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const normalized = value.trim();
-  if (normalized.toLowerCase().includes('sec')) return normalized;
-  return `${normalized} sec`;
+  return normalized.replace(/\s*sec(?:onds?)?\.?$/i, '').trim();
+}
+
+function formatAperture(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim();
+  if (normalized.length === 0) return undefined;
+  const stripped = normalized.replace(/^[fƒ]\s*\/?\s*/i, '').trim();
+  if (stripped.length === 0) return undefined;
+  return `ƒ/${stripped}`;
 }
 
 const focalLengthText = ensureUnit(focalLength, 'mm');
 const shutterSpeedText = formatShutter(shutterSpeed);
+const apertureText = formatAperture(aperture);
 const isoText = iso ? `ISO ${iso}` : undefined;
-const exposureLine =
-  focalLengthText && shutterSpeedText && isoText
-    ? `${focalLengthText} @ ${shutterSpeedText}, ${isoText}`
-    : null;
+const exposurePrimary = focalLengthText
+  ? `${focalLengthText}${apertureText ? ` @ ${apertureText}` : ''}`
+  : apertureText;
+const exposureDetails = [exposurePrimary, shutterSpeedText, isoText].filter(Boolean).join(', ');
+const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 ---
 
 <Layout title={`Photo ${title} | Henks Photography`} description={description}>
@@ -68,45 +106,670 @@ const exposureLine =
     />
 
     <section class="pt-12">
-      {exposureLine ? <p class="text-base text-stone-600">{exposureLine}</p> : null}
-
-      <div class="relative mt-8 overflow-hidden bg-stone-200">
+      <div class={mediaContentColumnClass}>
+      <div class="group/media relative mt-8 overflow-hidden bg-stone-200 dark:bg-slate-800" style={mediaContainerStyle}>
+        <div class="absolute top-4 right-4 z-20 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
+          <button id="show-photo-button" type="button" aria-label="Show photo" class="group cursor-pointer transition-opacity hover:opacity-70">
+            <span id="camera-icon" class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-black" style={`--icon-url: url('${cameraIcon}');`}></span>
+          </button>
+          <button
+            id="show-map-button"
+            type="button"
+            aria-label="Show map"
+            class={`group transition-opacity ${hasMapMedia ? 'cursor-pointer hover:opacity-70' : 'cursor-not-allowed opacity-40'}`}
+            disabled={!hasMapMedia}
+          >
+            <span id="location-icon" class="icon-mask block h-4 w-4 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${locationIcon}');`}></span>
+          </button>
+          <a href="/" aria-label="Back to gallery" class="group cursor-pointer">
+            <span class="icon-mask block h-3 w-3 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${crossIcon}');`}></span>
+          </a>
+        </div>
         {
           leftLoopId && rightLoopId ? (
             <>
               <a
+                id="photo-nav-left"
                 href={`/photo/${encodeURIComponent(leftLoopId)}`}
                 aria-label="Next photo"
-                class="absolute top-1/2 left-4 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center transition-opacity hover:opacity-70"
+                class="group absolute top-1/2 left-4 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors transition-opacity hover:bg-black md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100"
               >
-                <img src={caretLeft} alt="" class="h-6 w-6" />
+                <span
+                  aria-hidden="true"
+                  class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-white"
+                  style={`--icon-url: url('${caretLeft}');`}
+                ></span>
               </a>
               <a
+                id="photo-nav-right"
                 href={`/photo/${encodeURIComponent(rightLoopId)}`}
                 aria-label="Previous photo"
-                class="absolute top-1/2 right-4 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center transition-opacity hover:opacity-70"
+                class="group absolute top-1/2 right-4 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-sm transition-colors transition-opacity hover:bg-black md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100"
               >
-                <img src={caretRight} alt="" class="h-6 w-6" />
+                <span
+                  aria-hidden="true"
+                  class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-white"
+                  style={`--icon-url: url('${caretRight}');`}
+                ></span>
               </a>
             </>
           ) : null
         }
         {
           selectedPhoto ? (
-            <Image
-              src={selectedPhoto.imageUrl}
-              alt={selectedPhoto.alt}
-              width={selectedPhoto.width}
-              height={selectedPhoto.height}
-              class="h-full w-full object-cover"
-            />
+            <div id="photo-media-image" class="absolute inset-0">
+              <Image
+                src={selectedPhoto.imageUrl}
+                alt={selectedPhoto.alt}
+                width={selectedPhoto.width}
+                height={selectedPhoto.height}
+                class="h-full w-full object-cover"
+              />
+            </div>
           ) : (
-            <Image src={placeholderImage} alt={`Placeholder photograph ${id_of_the_photo}`} class="h-full w-full object-cover" />
+            <div id="photo-media-image" class="absolute inset-0">
+              <Image src={placeholderImage} alt={`Placeholder photograph ${id_of_the_photo}`} class="h-full w-full object-cover" />
+            </div>
           )
+        }
+        {
+          hasMapMedia ? (
+            <div
+              id="photo-media-map"
+              class="absolute inset-0 hidden bg-white"
+              data-map-mode={hasInteractiveMap ? 'interactive' : 'fallback'}
+              data-lat={locationLat ?? ''}
+              data-lng={locationLon ?? ''}
+              data-target-lat={targetLocationLat ?? ''}
+              data-target-lng={targetLocationLon ?? ''}
+              data-google-api-key={googleMapsApiKey}
+              data-henks-icon={henksMarker}
+              data-target-icon={cameraIcon}
+            >
+              {
+                hasInteractiveMap ? (
+                  <div id="photo-media-map-canvas" class="h-full w-full"></div>
+                ) : (
+                  <>
+                    <iframe
+                      src={mapEmbedUrl ?? undefined}
+                      loading="lazy"
+                      referrerpolicy="no-referrer-when-downgrade"
+                      title={location ? `Map for ${location}` : 'Map'}
+                      class="map-frame h-full w-full border-0"
+                    ></iframe>
+                    <img
+                      src={henksMarker}
+                      alt=""
+                      aria-hidden="true"
+                      class="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 object-cover shadow-sm"
+                      style="width: 34px; height: 34px;"
+                    />
+                  </>
+                )
+              }
+            </div>
+          ) : null
         }
       </div>
 
-      {description ? <p class="mt-6 max-w-3xl text-sm leading-relaxed text-stone-600">{description}</p> : null}
+      {exposureLine ? <p class="mt-6 text-base text-stone-600">{exposureLine}</p> : null}
+      {
+        description ? (
+          <div class="mt-6 flex max-w-3xl items-center gap-3">
+            <img
+              src={henksMarker}
+              alt=""
+              aria-hidden="true"
+              class="h-7 w-7 shrink-0 rounded-full border border-white/80 object-cover shadow-sm"
+            />
+            <p class="text-sm leading-relaxed text-slate-500">{description}</p>
+          </div>
+        ) : null
+      }
+      </div>
     </section>
   </main>
 </Layout>
+
+<script is:inline>
+  (() => {
+    const TARGET_LINE_PIXEL_LENGTH = 200;
+    const MARKER_OVERLAP_DISTANCE_PX = 34;
+    const photoLayer = document.getElementById('photo-media-image');
+    const mapLayer = document.getElementById('photo-media-map');
+    const showPhotoButton = document.getElementById('show-photo-button');
+    const showMapButton = document.getElementById('show-map-button');
+    const cameraIcon = document.getElementById('camera-icon');
+    const locationIcon = document.getElementById('location-icon');
+    const leftNavLink = document.getElementById('photo-nav-left');
+    const rightNavLink = document.getElementById('photo-nav-right');
+
+    if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
+
+    const setIconState = (mode) => {
+      if (mode === 'map') {
+        cameraIcon.classList.remove('bg-black');
+        cameraIcon.classList.add('bg-slate-400');
+        locationIcon.classList.remove('bg-slate-400');
+        locationIcon.classList.add('bg-black');
+      } else {
+        cameraIcon.classList.remove('bg-slate-400');
+        cameraIcon.classList.add('bg-black');
+        locationIcon.classList.remove('bg-black');
+        locationIcon.classList.add('bg-slate-400');
+      }
+    };
+
+    const showPhoto = () => {
+      photoLayer.classList.remove('hidden');
+      mapLayer?.classList.add('hidden');
+      setIconState('photo');
+    };
+
+    const showTemporaryZoomLabel = (zoomLevel) => {
+      if (!mapLayer) return;
+      let zoomLabel = mapLayer.querySelector('[data-map-zoom-label]');
+      if (!zoomLabel) {
+        zoomLabel = document.createElement('div');
+        zoomLabel.setAttribute('data-map-zoom-label', 'true');
+        zoomLabel.style.position = 'absolute';
+        zoomLabel.style.left = '50%';
+        zoomLabel.style.bottom = '16px';
+        zoomLabel.style.transform = 'translateX(-50%)';
+        zoomLabel.style.padding = '4px 10px';
+        zoomLabel.style.borderRadius = '9999px';
+        zoomLabel.style.background = 'rgba(17,24,39,0.8)';
+        zoomLabel.style.color = '#fff';
+        zoomLabel.style.fontSize = '12px';
+        zoomLabel.style.lineHeight = '1';
+        zoomLabel.style.zIndex = '30';
+        zoomLabel.style.pointerEvents = 'none';
+        zoomLabel.style.opacity = '0';
+        zoomLabel.style.transition = 'opacity 160ms ease';
+        mapLayer.appendChild(zoomLabel);
+      }
+
+      const roundedZoom = Math.round(zoomLevel * 10) / 10;
+      zoomLabel.textContent = `Zoom ${roundedZoom}`;
+      zoomLabel.style.opacity = '1';
+
+      if (zoomLabel.__hideTimeoutId) {
+        clearTimeout(zoomLabel.__hideTimeoutId);
+      }
+      zoomLabel.__hideTimeoutId = setTimeout(() => {
+        zoomLabel.style.opacity = '0';
+      }, 900);
+    };
+
+    const loadLeaflet = () => {
+      if (window.L && window.L.map) {
+        return Promise.resolve(window.L);
+      }
+
+      return new Promise((resolve, reject) => {
+        const existingScript = document.querySelector('script[data-leaflet-loader]');
+        if (existingScript) {
+          existingScript.addEventListener(
+            'load',
+            () => {
+              if (window.L && window.L.map) resolve(window.L);
+              else reject(new Error('Leaflet loaded without global API'));
+            },
+            { once: true },
+          );
+          existingScript.addEventListener('error', () => reject(new Error('Failed to load Leaflet')), { once: true });
+          return;
+        }
+
+        if (!document.querySelector('link[data-leaflet-style]')) {
+          const style = document.createElement('link');
+          style.rel = 'stylesheet';
+          style.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+          style.dataset.leafletStyle = 'true';
+          document.head.appendChild(style);
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.async = true;
+        script.defer = true;
+        script.dataset.leafletLoader = 'true';
+        script.onload = () => {
+          if (window.L && window.L.map) resolve(window.L);
+          else reject(new Error('Leaflet loaded without global API'));
+        };
+        script.onerror = () => reject(new Error('Failed to load Leaflet'));
+        document.head.appendChild(script);
+      });
+    };
+
+    const loadGoogleMaps = (apiKey) => {
+      if (window.google && window.google.maps) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve, reject) => {
+        const existingScript = document.querySelector('script[data-google-maps-loader]');
+        if (existingScript) {
+          existingScript.addEventListener('load', () => resolve(), { once: true });
+          existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Maps')), { once: true });
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly`;
+        script.async = true;
+        script.defer = true;
+        script.dataset.googleMapsLoader = 'true';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Google Maps'));
+        document.head.appendChild(script);
+      });
+    };
+
+    const createCameraOverlayHtml = (markerUrl) => `
+      <div class="camera-overlay" style="position: relative; width: 34px; height: 34px; pointer-events: none;">
+        <img
+          src="${markerUrl}"
+          alt=""
+          aria-hidden="true"
+          class="camera-overlay__marker"
+          style="position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; transform: translate(-50%, -50%); z-index: 2; object-fit: cover; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 1px 2px rgba(0,0,0,0.15);"
+        />
+      </div>
+    `;
+
+    const createTargetOverlayHtml = (iconUrl) => `
+      <div
+        style="position: relative; width: 26px; height: 26px; pointer-events: none; border-radius: 9999px; background: #ffffff; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 1px 2px rgba(0,0,0,0.18);"
+      >
+        <img
+          src="${iconUrl}"
+          alt=""
+          aria-hidden="true"
+          style="position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; transform: translate(-50%, -50%); object-fit: contain;"
+        />
+      </div>
+    `;
+
+    const initGoogleMap = async ({ lat, lng, targetLat, targetLng, canvas, apiKey, henksIcon, targetIcon }) => {
+      await loadGoogleMaps(apiKey);
+
+      const center = { lat, lng };
+      const hasTargetLocation = Number.isFinite(targetLat) && Number.isFinite(targetLng);
+      const targetsCenter = hasTargetLocation
+        ? { lat: (lat + targetLat) / 2, lng: (lng + targetLng) / 2 }
+        : center;
+      const map = new google.maps.Map(canvas, {
+        center,
+        zoom: 16,
+        disableDefaultUI: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        styles: [
+          { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+          { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+          { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+          { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
+          { featureType: 'all', stylers: [{ saturation: -100 }, { lightness: 8 }] },
+        ],
+      });
+
+      let connectionLine = null;
+      if (hasTargetLocation) {
+        const target = { lat: targetLat, lng: targetLng };
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(center);
+        bounds.extend(target);
+        map.fitBounds(bounds, 24);
+        google.maps.event.addListenerOnce(map, 'idle', () => {
+          const projection = map.getProjection();
+          if (!projection) return;
+
+          const pointA = projection.fromLatLngToPoint(new google.maps.LatLng(center.lat, center.lng));
+          const pointB = projection.fromLatLngToPoint(new google.maps.LatLng(target.lat, target.lng));
+          const worldDistance = Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y);
+          if (!Number.isFinite(worldDistance) || worldDistance <= 0) return;
+
+          const desiredZoom = Math.log2(TARGET_LINE_PIXEL_LENGTH / worldDistance);
+          const clampedZoom = Math.max(2, Math.min(21, desiredZoom));
+          map.setZoom(clampedZoom);
+        });
+
+        const baseLineColor = '#111827';
+        connectionLine = new google.maps.Polyline({
+          path: [center, target],
+          map,
+          geodesic: true,
+          strokeColor: baseLineColor,
+          strokeOpacity: 0,
+          strokeWeight: 2,
+          zIndex: 1,
+          clickable: false,
+          icons: [
+            {
+              icon: {
+                path: 'M 0,-1 0,1',
+                strokeOpacity: 0.7,
+                strokeColor: baseLineColor,
+                scale: 2,
+              },
+              offset: '0',
+              repeat: '10px',
+            },
+          ],
+        });
+      }
+
+      class HtmlOverlay extends google.maps.OverlayView {
+        constructor(position, html) {
+          super();
+          this.position = position;
+          this.html = html;
+          this.container = null;
+          this.visible = true;
+        }
+
+        onAdd() {
+          const div = document.createElement('div');
+          div.style.position = 'absolute';
+          div.style.transform = 'translate(-50%, -50%)';
+          div.style.pointerEvents = 'none';
+          div.style.zIndex = '10';
+          div.innerHTML = this.html;
+          this.container = div;
+          this.getPanes().overlayMouseTarget.appendChild(div);
+          this.container.style.display = this.visible ? 'block' : 'none';
+        }
+
+        draw() {
+          if (!this.container) return;
+          const projection = this.getProjection();
+          if (!projection) return;
+          const point = projection.fromLatLngToDivPixel(this.position);
+          if (!point) return;
+          this.container.style.left = `${point.x}px`;
+          this.container.style.top = `${point.y}px`;
+        }
+
+        setVisible(isVisible) {
+          this.visible = isVisible;
+          if (this.container) {
+            this.container.style.display = isVisible ? 'block' : 'none';
+          }
+        }
+
+        onRemove() {
+          if (this.container && this.container.parentNode) {
+            this.container.parentNode.removeChild(this.container);
+          }
+          this.container = null;
+        }
+      }
+
+      const mainOverlay = new HtmlOverlay(center, createCameraOverlayHtml(henksIcon));
+      mainOverlay.setMap(map);
+      let targetOverlay = null;
+
+      const updateMapDetailVisibility = () => {
+        const currentZoom = map.getZoom() ?? 0;
+        let shouldShowTarget = true;
+        if (targetOverlay) {
+          const projection = map.getProjection();
+          if (projection) {
+            const pointA = projection.fromLatLngToPoint(new google.maps.LatLng(center.lat, center.lng));
+            const pointB = projection.fromLatLngToPoint(new google.maps.LatLng(targetLat, targetLng));
+            const pixelDistance = Math.hypot(pointA.x - pointB.x, pointA.y - pointB.y) * Math.pow(2, currentZoom);
+            shouldShowTarget = pixelDistance > MARKER_OVERLAP_DISTANCE_PX;
+          }
+        }
+        mainOverlay.setVisible(true);
+        if (targetOverlay) {
+          targetOverlay.setVisible(shouldShowTarget);
+        }
+        if (connectionLine) {
+          connectionLine.setVisible(shouldShowTarget);
+        }
+        if (hasTargetLocation) {
+          map.setCenter(targetsCenter);
+        }
+        showTemporaryZoomLabel(currentZoom);
+      };
+      updateMapDetailVisibility();
+      map.addListener('zoom_changed', updateMapDetailVisibility);
+
+      if (hasTargetLocation && targetIcon) {
+        const target = { lat: targetLat, lng: targetLng };
+        targetOverlay = new HtmlOverlay(target, createTargetOverlayHtml(targetIcon));
+        targetOverlay.setMap(map);
+        updateMapDetailVisibility();
+      }
+    };
+
+    const initLeafletMap = async ({ lat, lng, targetLat, targetLng, canvas, henksIcon, targetIcon }) => {
+      const L = await loadLeaflet();
+      const center = [lat, lng];
+      const hasTargetLocation = Number.isFinite(targetLat) && Number.isFinite(targetLng);
+      const targetsCenter = hasTargetLocation
+        ? L.latLng((lat + targetLat) / 2, (lng + targetLng) / 2)
+        : L.latLng(lat, lng);
+      const map = L.map(canvas, {
+        zoomControl: true,
+        attributionControl: true,
+        zoomSnap: 0.1,
+      });
+      if (hasTargetLocation) {
+        map.fitBounds(
+          [
+            center,
+            [targetLat, targetLng],
+          ],
+          { padding: [24, 24], maxZoom: 19 },
+        );
+        map.once('moveend', () => {
+          const currentZoom = map.getZoom();
+          const pointA = map.project(center, currentZoom);
+          const pointB = map.project([targetLat, targetLng], currentZoom);
+          const pixelDistance = pointA.distanceTo(pointB);
+          if (!Number.isFinite(pixelDistance) || pixelDistance <= 0) return;
+
+          const desiredZoom = currentZoom + Math.log2(TARGET_LINE_PIXEL_LENGTH / pixelDistance);
+          const clampedZoom = Math.max(2, Math.min(19, desiredZoom));
+          map.setZoom(clampedZoom, { animate: false });
+        });
+      } else {
+        map.setView(center, 16);
+      }
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(map);
+
+      let connectionLine = null;
+      if (hasTargetLocation) {
+        connectionLine = L.polyline([center, [targetLat, targetLng]], {
+          color: '#111827',
+          weight: 2,
+          opacity: 0.7,
+          dashArray: '6 6',
+          interactive: false,
+        }).addTo(map);
+      }
+
+      const cameraOverlayIcon = L.divIcon({
+        className: 'camera-overlay-wrapper',
+        html: createCameraOverlayHtml(henksIcon),
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+      });
+      const cameraMarker = L.marker(center, { icon: cameraOverlayIcon, interactive: false }).addTo(map);
+
+      const updateMapDetailVisibility = () => {
+        const currentZoom = map.getZoom();
+        let shouldShowTarget = true;
+        if (hasTargetLocation) {
+          const pointA = map.project(center, currentZoom);
+          const pointB = map.project([targetLat, targetLng], currentZoom);
+          const pixelDistance = pointA.distanceTo(pointB);
+          shouldShowTarget = pixelDistance > MARKER_OVERLAP_DISTANCE_PX;
+        }
+        cameraMarker.setOpacity(1);
+        if (hasTargetLocation) {
+          targetMarker.setOpacity(shouldShowTarget ? 1 : 0);
+        }
+        if (connectionLine) {
+          connectionLine.setStyle({ opacity: shouldShowTarget ? 0.7 : 0 });
+        }
+        if (hasTargetLocation) {
+          map.panTo(targetsCenter, { animate: false });
+        }
+        showTemporaryZoomLabel(currentZoom);
+      };
+      let targetMarker = null;
+      if (hasTargetLocation) {
+        const targetOverlayIcon = L.divIcon({
+          className: 'target-overlay-wrapper',
+          html: createTargetOverlayHtml(targetIcon),
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        });
+        targetMarker = L.marker([targetLat, targetLng], {
+          icon: targetOverlayIcon,
+          interactive: false,
+        }).addTo(map);
+      }
+      updateMapDetailVisibility();
+      map.on('zoomend', updateMapDetailVisibility);
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 0);
+    };
+
+    const initInteractiveMap = async () => {
+      if (!mapLayer || mapLayer.dataset.mapMode !== 'interactive' || mapLayer.dataset.initialized === 'true') return;
+
+      const toFiniteCoordinate = (value) => {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      };
+
+      const lat = toFiniteCoordinate(mapLayer.dataset.lat);
+      const lng = toFiniteCoordinate(mapLayer.dataset.lng);
+      const targetLat = toFiniteCoordinate(mapLayer.dataset.targetLat);
+      const targetLng = toFiniteCoordinate(mapLayer.dataset.targetLng);
+      const googleApiKey = mapLayer.dataset.googleApiKey || '';
+      const henksIcon = mapLayer.dataset.henksIcon;
+      const targetIcon = mapLayer.dataset.targetIcon;
+      const canvas = document.getElementById('photo-media-map-canvas');
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || !canvas || !henksIcon || !targetIcon) return;
+      const mapConfig = { lat, lng, targetLat, targetLng, henksIcon, targetIcon, canvas };
+      try {
+        if (googleApiKey) {
+          await initGoogleMap({ ...mapConfig, apiKey: googleApiKey });
+        } else {
+          await initLeafletMap(mapConfig);
+        }
+        mapLayer.dataset.initialized = 'true';
+      } catch (error) {
+        if (googleApiKey) {
+          await initLeafletMap(mapConfig);
+          mapLayer.dataset.initialized = 'true';
+        } else {
+          throw error;
+        }
+      }
+    };
+
+    const showMap = async () => {
+      if (!mapLayer) return;
+      photoLayer.classList.add('hidden');
+      mapLayer.classList.remove('hidden');
+      setIconState('map');
+      await initInteractiveMap();
+    };
+
+    showPhotoButton.addEventListener('click', showPhoto);
+    showMapButton?.addEventListener('click', () => {
+      void showMap();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+
+      const activeElement = document.activeElement;
+      if (
+        activeElement &&
+        (activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.tagName === 'SELECT' ||
+          activeElement.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' && leftNavLink instanceof HTMLAnchorElement) {
+        event.preventDefault();
+        leftNavLink.click();
+      } else if (event.key === 'ArrowRight' && rightNavLink instanceof HTMLAnchorElement) {
+        event.preventDefault();
+        rightNavLink.click();
+      }
+    });
+
+    setIconState('photo');
+  })();
+</script>
+
+<style>
+  .icon-mask {
+    -webkit-mask-image: var(--icon-url);
+    mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .map-frame {
+    filter: grayscale(1) saturate(0.3) hue-rotate(185deg) brightness(0.96) contrast(1.04);
+  }
+
+  #photo-media-map-canvas .leaflet-tile-pane {
+    filter: grayscale(1) saturate(0.3) hue-rotate(185deg) brightness(0.96) contrast(1.04);
+  }
+
+  .camera-overlay-wrapper {
+    background: transparent;
+    border: 0;
+  }
+
+  .camera-overlay {
+    pointer-events: none;
+    position: relative;
+    width: 12px;
+    height: 12px;
+  }
+
+  .camera-overlay__marker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    object-fit: cover;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+</style>

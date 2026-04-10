@@ -10,28 +10,77 @@ interface Props {
   width?: number;
   height?: number;
   href?: string;
+  bgClass?: string;
   className?: string;
 }
 
-const { src, alt, title, aspect = '3 / 4', width = 1200, height = 900, href, className = '' } = Astro.props;
+const { src, alt, title, aspect = '3 / 4', width = 1200, height = 900, href, bgClass = 'bg-slate-100', className = '' } = Astro.props;
+const linkAriaLabel = title ? `Open photo: ${title}` : `Open photo: ${alt}`;
 ---
 
 <figure
-  class={`group relative w-full overflow-hidden bg-stone-200 ${className}`}
+  class={`group relative w-full overflow-hidden ${bgClass} ${className}`}
   style={`aspect-ratio: ${aspect};`}
 >
   {href ? (
-    <a href={href} class="block h-full w-full">
-      <Image src={src} alt={alt} width={width} height={height} class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+    <a href={href} aria-label={linkAriaLabel} class="masonry-link block h-full w-full">
+      <Image
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        class="masonry-photo h-full w-full object-cover"
+        loading="lazy"
+        onload="this.classList.add('is-loaded')"
+        onerror="this.classList.add('is-loaded')"
+      />
     </a>
   ) : (
-    <Image src={src} alt={alt} width={width} height={height} class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+    <Image
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      class="masonry-photo h-full w-full object-cover"
+      loading="lazy"
+      onload="this.classList.add('is-loaded')"
+      onerror="this.classList.add('is-loaded')"
+    />
   )}
   {
     title ? (
-      <figcaption class="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/35 px-4 py-3 text-center text-stone-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+      <figcaption class="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/35 px-4 py-3 text-center text-stone-100 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
         <span class="bg-black/85 px-3 py-1.5 text-xl font-medium leading-tight">{title}</span>
       </figcaption>
     ) : null
   }
 </figure>
+
+<style>
+  .masonry-photo {
+    opacity: 0;
+    transition: opacity 420ms ease-out, transform 500ms ease-out;
+    will-change: opacity, transform;
+  }
+
+  .masonry-photo.is-loaded {
+    opacity: 1;
+  }
+
+  .group:hover .masonry-photo {
+    transform: scale(1.02);
+  }
+
+  .masonry-link:focus-visible {
+    outline: 3px solid #111827;
+    outline-offset: -3px;
+  }
+
+  html[data-theme='dark'] .masonry-link:focus-visible {
+    outline-color: #ffffff;
+  }
+
+  html[data-theme='dark'] .masonry-photo {
+    filter: grayscale(1);
+  }
+</style>
