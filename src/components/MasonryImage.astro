@@ -16,6 +16,7 @@ interface Props {
 
 const { src, alt, title, aspect = '3 / 4', width = 1200, height = 900, href, bgClass = 'bg-slate-100', className = '' } = Astro.props;
 const linkAriaLabel = title ? `Open photo: ${title}` : `Open photo: ${alt}`;
+const isExternalUrl = typeof src === 'string';
 ---
 
 <figure
@@ -24,6 +25,43 @@ const linkAriaLabel = title ? `Open photo: ${title}` : `Open photo: ${alt}`;
 >
   {href ? (
     <a href={href} aria-label={linkAriaLabel} class="masonry-link block h-full w-full">
+      {isExternalUrl ? (
+        <img
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          class="masonry-photo h-full w-full object-cover"
+          loading="lazy"
+          onload="this.classList.add('is-loaded')"
+          onerror="this.classList.add('is-loaded')"
+        />
+      ) : (
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          class="masonry-photo h-full w-full object-cover"
+          loading="lazy"
+          onload="this.classList.add('is-loaded')"
+          onerror="this.classList.add('is-loaded')"
+        />
+      )}
+    </a>
+  ) : (
+    isExternalUrl ? (
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        class="masonry-photo h-full w-full object-cover"
+        loading="lazy"
+        onload="this.classList.add('is-loaded')"
+        onerror="this.classList.add('is-loaded')"
+      />
+    ) : (
       <Image
         src={src}
         alt={alt}
@@ -34,18 +72,7 @@ const linkAriaLabel = title ? `Open photo: ${title}` : `Open photo: ${alt}`;
         onload="this.classList.add('is-loaded')"
         onerror="this.classList.add('is-loaded')"
       />
-    </a>
-  ) : (
-    <Image
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      class="masonry-photo h-full w-full object-cover"
-      loading="lazy"
-      onload="this.classList.add('is-loaded')"
-      onerror="this.classList.add('is-loaded')"
-    />
+    )
   )}
   {
     title ? (

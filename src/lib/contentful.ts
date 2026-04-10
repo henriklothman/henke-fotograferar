@@ -185,8 +185,11 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
   const contentType = import.meta.env.CONTENTFUL_CONTENT_TYPE;
 
   if (!space || !token) {
+    console.warn('Contentful environment variables missing. Using placeholder images.');
     return [];
   }
+  
+  console.log('Fetching photos from Contentful...');
 
   const url = new URL(`https://cdn.contentful.com/spaces/${space}/environments/${environment}/entries`);
   url.searchParams.set('access_token', token);
@@ -213,6 +216,8 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
   } finally {
     clearTimeout(timeoutId);
   }
+
+  console.log(`Successfully fetched ${data.items?.length ?? 0} entries from Contentful`);
 
   const assets = data.includes?.Asset ?? [];
   const assetById = new Map<string, ContentfulAsset>(
@@ -297,8 +302,10 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
       aperture,
       iso,
     });
+    console.log(`Parsed photo: "${title}" -> ${url}`);
   }
 
+  console.log(`Parsed ${photos.length} photos from Contentful`);
   return photos;
 }
 

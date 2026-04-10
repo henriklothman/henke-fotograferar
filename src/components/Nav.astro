@@ -1,10 +1,10 @@
 ---
-const Logo = "/src/assets/logo_light.svg";
-const LogoDark = "/src/assets/logo_dark.svg";
-const HenksLogo = "/src/assets/henks.png";
-const Cross = "/src/assets/cross.svg";
-const MoonStar = "/src/assets/moon_star.svg";
-const Sun = "/src/assets/sun.svg";
+import Logo from '../assets/logo_light.svg';
+import LogoDark from '../assets/logo_dark.svg';
+import HenksLogo from '../assets/henks.png';
+import Cross from '../assets/cross.svg';
+import MoonStar from '../assets/moon_star.svg';
+import Sun from '../assets/sun.svg';
 
 interface Props {
   className?: string;
@@ -27,11 +27,11 @@ const isAboutTab = activeTab === 'about';
   <a href="/" aria-label="Go to Photography home" class="nav-focusable relative h-18 w-18 shrink-0 rounded-sm transition-transform duration-200 hover:rotate-15">
     {
       isAboutTab ? (
-        <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={HenksLogo} />
+        <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={HenksLogo.src} />
       ) : (
         <>
-          <img alt="Henrik Löthman" class="theme-logo-light absolute inset-0 h-full w-full object-cover" src={Logo} />
-          <img alt="Henrik Löthman" class="theme-logo-dark absolute inset-0 h-full w-full object-cover" src={LogoDark} />
+          <img alt="Henrik Löthman" class="theme-logo-light absolute inset-0 h-full w-full object-cover" src={Logo.src} />
+          <img alt="Henrik Löthman" class="theme-logo-dark absolute inset-0 h-full w-full object-cover" src={LogoDark.src} />
         </>
       )
     }
@@ -44,7 +44,7 @@ const isAboutTab = activeTab === 'about';
             <span
               aria-hidden="true"
               class="nav-cross icon-mask block h-2.5 w-2.5 bg-black opacity-90"
-              style={`--icon-url: url('${Cross}');`}
+              style={`--icon-url: url('${Cross.src}');`}
             ></span>
           ) : (
             <div
@@ -70,10 +70,10 @@ const isAboutTab = activeTab === 'about';
       >
         <span
           data-theme-icon
-          data-icon-on={Sun}
-          data-icon-off={MoonStar}
+          data-icon-on={Sun.src}
+          data-icon-off={MoonStar.src}
           class="icon-mask block h-5 w-5 bg-black transition-colors"
-          style={`--icon-url: url('${MoonStar}');`}
+          style={`--icon-url: url('${MoonStar.src}');`}
         ></span>
       </button>
 

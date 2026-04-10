@@ -4,14 +4,13 @@ import Layout from '../../layouts/Layout.astro';
 import Nav from '../../components/Nav.astro';
 import { Image } from 'astro:assets';
 import placeholderImage from '../../assets/placeholder-image.svg';
+import caretLeft from '../../assets/caret_left.svg';
+import caretRight from '../../assets/caret_right.svg';
+import cameraIcon from '../../assets/camera.svg';
+import locationIcon from '../../assets/location.svg';
+import crossIcon from '../../assets/cross.svg';
+import henksMarker from '../../assets/henks.png';
 import { getContentfulPhotos } from '../../lib/contentful';
-
-const caretLeft = '/src/assets/caret_left.svg';
-const caretRight = '/src/assets/caret_right.svg';
-const cameraIcon = '/src/assets/camera.svg';
-const locationIcon = '/src/assets/location.svg';
-const crossIcon = '/src/assets/cross.svg';
-const henksMarker = '/src/assets/henks.png';
 
 const { id_of_the_photo } = Astro.params;
 const photos = await getContentfulPhotos();
@@ -112,7 +111,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       <div id="photo-media-container" class="group/media relative mt-8 overflow-hidden bg-stone-200 dark:bg-slate-800" style={mediaContainerStyle}>
         <div id="photo-media-controls" class="absolute top-4 right-4 z-20 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
           <button id="show-photo-button" type="button" aria-label="Show photo" class="group cursor-pointer transition-opacity hover:opacity-70">
-            <span id="camera-icon" class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-black" style={`--icon-url: url('${cameraIcon}');`}></span>
+            <span id="camera-icon" class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-black" style={`--icon-url: url('${cameraIcon.src}');`}></span>
           </button>
           <button
             id="show-map-button"
@@ -121,10 +120,10 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             class={`group transition-opacity ${hasMapMedia ? 'cursor-pointer hover:opacity-70' : 'cursor-not-allowed opacity-40'}`}
             disabled={!hasMapMedia}
           >
-            <span id="location-icon" class="icon-mask block h-4 w-4 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${locationIcon}');`}></span>
+            <span id="location-icon" class="icon-mask block h-4 w-4 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${locationIcon.src}');`}></span>
           </button>
           <a href="/" aria-label="Back to gallery" class="group cursor-pointer">
-            <span class="icon-mask block h-3 w-3 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${crossIcon}');`}></span>
+            <span class="icon-mask block h-3 w-3 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${crossIcon.src}');`}></span>
           </a>
         </div>
         {
@@ -139,7 +138,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
                 <span
                   aria-hidden="true"
                   class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-white"
-                  style={`--icon-url: url('${caretLeft}');`}
+                  style={`--icon-url: url('${caretLeft.src}');`}
                 ></span>
               </a>
               <a
@@ -151,7 +150,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
                 <span
                   aria-hidden="true"
                   class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-white"
-                  style={`--icon-url: url('${caretRight}');`}
+                  style={`--icon-url: url('${caretRight.src}');`}
                 ></span>
               </a>
             </>
@@ -160,7 +159,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         {
           selectedPhoto ? (
             <div id="photo-media-image" class="absolute inset-0">
-              <Image
+              <img
                 src={selectedPhoto.imageUrl}
                 alt={selectedPhoto.alt}
                 width={selectedPhoto.width}
@@ -185,8 +184,8 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
               data-target-lat={targetLocationLat ?? ''}
               data-target-lng={targetLocationLon ?? ''}
               data-google-api-key={googleMapsApiKey}
-              data-henks-icon={henksMarker}
-              data-target-icon={cameraIcon}
+              data-henks-icon={henksMarker.src}
+              data-target-icon={cameraIcon.src}
             >
               {
                 hasInteractiveMap ? (

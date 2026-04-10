@@ -44,6 +44,12 @@ const masonryItems =
         bgClass: pickSeededBackground(photo.id),
       }))
     : fallbackItems;
+
+if (contentfulPhotos.length === 0) {
+  console.warn('Using placeholder images - Contentful fetch returned no photos');
+} else {
+  console.log(`Loaded ${contentfulPhotos.length} photos from Contentful`);
+}
 ---
 
 <Layout title="Henks Photography" description="Selected work from the Henks layout.">
