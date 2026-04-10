@@ -71,3 +71,95 @@ const masonryItems =
     </section>
   </main>
 </Layout>
+
+<script is:inline>
+  (() => {
+    const ARROW_UP_TOAST_SEEN_KEY = 'index-arrowup-toast-seen-v3';
+
+    const showArrowUpToastOnce = () => {
+      try {
+        if (localStorage.getItem(ARROW_UP_TOAST_SEEN_KEY) === '1') return;
+      } catch {
+        // Ignore storage failures and still show toast.
+      }
+
+      const toast = document.createElement('div');
+      toast.className = 'index-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.textContent = 'Arrow up to dive in';
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.add('is-visible');
+      });
+
+      setTimeout(() => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => {
+          toast.remove();
+          try {
+            localStorage.setItem(ARROW_UP_TOAST_SEEN_KEY, '1');
+          } catch {
+            // Ignore storage failures.
+          }
+        }, 240);
+      }, 3200);
+    };
+
+    const initIndexShortcutsAndToast = () => {
+      showArrowUpToastOnce();
+
+      document.addEventListener('keydown', (event) => {
+        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+
+        const activeElement = document.activeElement;
+        if (
+          activeElement &&
+          (activeElement.tagName === 'INPUT' ||
+            activeElement.tagName === 'TEXTAREA' ||
+            activeElement.tagName === 'SELECT' ||
+            activeElement.isContentEditable)
+        ) {
+          return;
+        }
+
+        if (event.key !== 'ArrowUp') return;
+        const firstMasonryLink = document.querySelector('.masonry-link');
+        if (!(firstMasonryLink instanceof HTMLAnchorElement)) return;
+        event.preventDefault();
+        window.location.href = firstMasonryLink.href;
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initIndexShortcutsAndToast, { once: true });
+    } else {
+      initIndexShortcutsAndToast();
+    }
+  })();
+</script>
+
+<style>
+  .index-toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 60;
+    border-radius: 9999px;
+    background: rgba(17, 24, 39, 0.9);
+    color: #fff;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 220ms ease, transform 220ms ease;
+    pointer-events: none;
+  }
+
+  .index-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>

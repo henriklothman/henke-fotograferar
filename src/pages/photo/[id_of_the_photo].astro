@@ -97,18 +97,20 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 ---
 
 <Layout title={`Photo ${title} | Henks Photography`} description={description}>
-  <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
-    <Nav
-      activeTab="photography"
-      photoNav={{
-        items: navItems,
-      }}
-    />
+  <main id="photo-page-main" class="mx-auto max-w-7xl px-6 pb-20 pt-17">
+    <div id="photo-page-nav">
+      <Nav
+        activeTab="photography"
+        photoNav={{
+          items: navItems,
+        }}
+      />
+    </div>
 
-    <section class="pt-12">
-      <div class={mediaContentColumnClass}>
-      <div class="group/media relative mt-8 overflow-hidden bg-stone-200 dark:bg-slate-800" style={mediaContainerStyle}>
-        <div class="absolute top-4 right-4 z-20 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
+    <section id="photo-page-section" class="pt-12">
+      <div id="photo-media-column" class={mediaContentColumnClass}>
+      <div id="photo-media-container" class="group/media relative mt-8 overflow-hidden bg-stone-200 dark:bg-slate-800" style={mediaContainerStyle}>
+        <div id="photo-media-controls" class="absolute top-4 right-4 z-20 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
           <button id="show-photo-button" type="button" aria-label="Show photo" class="group cursor-pointer transition-opacity hover:opacity-70">
             <span id="camera-icon" class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-black" style={`--icon-url: url('${cameraIcon}');`}></span>
           </button>
@@ -163,12 +165,12 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
                 alt={selectedPhoto.alt}
                 width={selectedPhoto.width}
                 height={selectedPhoto.height}
-                class="h-full w-full object-cover"
+                class="photo-main-image h-full w-full object-cover"
               />
             </div>
           ) : (
             <div id="photo-media-image" class="absolute inset-0">
-              <Image src={placeholderImage} alt={`Placeholder photograph ${id_of_the_photo}`} class="h-full w-full object-cover" />
+              <Image src={placeholderImage} alt={`Placeholder photograph ${id_of_the_photo}`} class="photo-main-image h-full w-full object-cover" />
             </div>
           )
         }
@@ -213,20 +215,22 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         }
       </div>
 
-      {exposureLine ? <p class="mt-6 text-base text-stone-600">{exposureLine}</p> : null}
-      {
-        description ? (
-          <div class="mt-6 flex max-w-3xl items-center gap-3">
-            <img
-              src={henksMarker}
-              alt=""
-              aria-hidden="true"
-              class="h-7 w-7 shrink-0 rounded-full border border-white/80 object-cover shadow-sm"
-            />
-            <p class="text-sm leading-relaxed text-slate-500">{description}</p>
-          </div>
-        ) : null
-      }
+      <div id="photo-meta">
+        {exposureLine ? <p class="mt-6 text-base text-stone-600">{exposureLine}</p> : null}
+        {
+          description ? (
+            <div class="mt-6 flex max-w-3xl items-center gap-3">
+              <img
+                src={henksMarker}
+                alt=""
+                aria-hidden="true"
+                class="h-7 w-7 shrink-0 rounded-full border border-white/80 object-cover shadow-sm"
+              />
+              <p class="text-sm leading-relaxed text-slate-500">{description}</p>
+            </div>
+          ) : null
+        }
+      </div>
       </div>
     </section>
   </main>
@@ -244,6 +248,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     const locationIcon = document.getElementById('location-icon');
     const leftNavLink = document.getElementById('photo-nav-left');
     const rightNavLink = document.getElementById('photo-nav-right');
+    const IMMERSIVE_QUERY_PARAM = 'immersive';
 
     if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
 
@@ -265,6 +270,42 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       photoLayer.classList.remove('hidden');
       mapLayer?.classList.add('hidden');
       setIconState('photo');
+    };
+
+    const isImmersiveMode = () => document.documentElement.classList.contains('photo-immersive');
+
+    const setImmersiveUrlState = (enabled) => {
+      const url = new URL(window.location.href);
+      if (enabled) {
+        url.searchParams.set(IMMERSIVE_QUERY_PARAM, '1');
+      } else {
+        url.searchParams.delete(IMMERSIVE_QUERY_PARAM);
+      }
+      window.history.replaceState({}, '', url);
+    };
+
+    const navigateToPhotoLink = (link) => {
+      if (!(link instanceof HTMLAnchorElement)) return;
+      if (!isImmersiveMode()) {
+        link.click();
+        return;
+      }
+
+      const url = new URL(link.href, window.location.origin);
+      url.searchParams.set(IMMERSIVE_QUERY_PARAM, '1');
+      window.location.href = url.toString();
+    };
+
+    const enterImmersivePhotoMode = () => {
+      showPhoto();
+      document.documentElement.classList.add('photo-immersive');
+      setImmersiveUrlState(true);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+
+    const exitImmersivePhotoMode = () => {
+      document.documentElement.classList.remove('photo-immersive');
+      setImmersiveUrlState(false);
     };
 
     const showTemporaryZoomLabel = (zoomLevel) => {
@@ -713,14 +754,32 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         return;
       }
 
-      if (event.key === 'ArrowLeft' && leftNavLink instanceof HTMLAnchorElement) {
+      if (event.key === 'Escape') {
         event.preventDefault();
-        leftNavLink.click();
+        exitImmersivePhotoMode();
+        window.location.href = '/';
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        enterImmersivePhotoMode();
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (document.documentElement.classList.contains('photo-immersive')) {
+          exitImmersivePhotoMode();
+        } else {
+          window.location.href = '/';
+        }
+      } else if (event.key === 'ArrowLeft' && leftNavLink instanceof HTMLAnchorElement) {
+        event.preventDefault();
+        navigateToPhotoLink(leftNavLink);
       } else if (event.key === 'ArrowRight' && rightNavLink instanceof HTMLAnchorElement) {
         event.preventDefault();
-        rightNavLink.click();
+        navigateToPhotoLink(rightNavLink);
       }
     });
+
+    if (new URLSearchParams(window.location.search).get(IMMERSIVE_QUERY_PARAM) === '1') {
+      enterImmersivePhotoMode();
+    }
 
     setIconState('photo');
   })();
@@ -770,6 +829,57 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     border-radius: 9999px;
     border: 1px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+  html.photo-immersive body {
+    overflow: hidden;
+  }
+
+  html.photo-immersive #photo-page-main {
+    max-width: none;
+    padding: 0;
+  }
+
+  html.photo-immersive #photo-page-section {
+    padding-top: 0;
+  }
+
+  html.photo-immersive #photo-page-nav,
+  html.photo-immersive #photo-meta,
+  html.photo-immersive #photo-media-controls,
+  html.photo-immersive #photo-nav-left,
+  html.photo-immersive #photo-nav-right {
+    display: none !important;
+  }
+
+  html.photo-immersive #photo-media-column {
+    width: 100vw !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  html.photo-immersive #photo-media-container {
+    margin-top: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100svh !important;
+    aspect-ratio: auto !important;
+    background: transparent !important;
+  }
+
+  html.photo-immersive #photo-media-image {
+    inset: 12px !important;
+  }
+
+  @media (min-width: 768px) {
+    html.photo-immersive #photo-media-image {
+      inset: 20px !important;
+    }
+  }
+
+  html.photo-immersive #photo-media-image .photo-main-image {
+    object-fit: contain !important;
+    background: transparent;
   }
 
 </style>
