@@ -239,6 +239,19 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
     if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
 
+    const mainImage = photoLayer.querySelector('.photo-main-image');
+    const setMediaContainerReady = () => {
+      mediaContainer?.classList.add('photo-media-container--image-ready');
+    };
+
+    if (mainImage instanceof HTMLImageElement) {
+      if (mainImage.complete && mainImage.naturalWidth > 0) {
+        setMediaContainerReady();
+      } else {
+        mainImage.addEventListener('load', setMediaContainerReady, { once: true });
+      }
+    }
+
     const setIconState = (mode) => {
       if (mode === 'map') {
         cameraIcon.classList.remove('control-icon-active');
@@ -888,6 +901,10 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     background-color: #1e293b;
   }
 
+  #photo-media-container.photo-media-container--image-ready {
+    background-color: transparent !important;
+  }
+
   :global(html[data-theme='dark']) #photo-media-controls {
     background-color: #0f172a;
   }
@@ -1020,6 +1037,11 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       height: 88svh !important;
       aspect-ratio: auto !important;
       margin-top: 0.75rem !important;
+    }
+
+    #photo-media-image .photo-main-image {
+      object-fit: contain !important;
+      object-position: center;
     }
   }
 
