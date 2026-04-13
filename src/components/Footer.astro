@@ -1,6 +1,6 @@
 ---
-const Linkedin = '/src/assets/linkedin.svg';
-const Instagram = '/src/assets/instagram.svg';
+import Linkedin from '../assets/linkedin.svg';
+import Instagram from '../assets/instagram.svg';
 ---
 
 <footer class="footer-mark">
@@ -11,7 +11,7 @@ const Instagram = '/src/assets/instagram.svg';
     rel="noreferrer noopener"
     aria-label="LinkedIn"
   >
-    <span class="footer-mark__icon" aria-hidden="true" style={`--icon-url: url('${Linkedin}');`}></span>
+    <span class="footer-mark__icon" aria-hidden="true" style={`--icon-url: url('${Linkedin.src}');`}></span>
   </a>
   <a
     class="footer-mark__link"
@@ -20,7 +20,7 @@ const Instagram = '/src/assets/instagram.svg';
     rel="noreferrer noopener"
     aria-label="Instagram"
   >
-    <span class="footer-mark__icon" aria-hidden="true" style={`--icon-url: url('${Instagram}');`}></span>
+    <span class="footer-mark__icon" aria-hidden="true" style={`--icon-url: url('${Instagram.src}');`}></span>
   </a>
 </footer>
 
