@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Footer from '../components/Footer.astro';
+import Analytics from '@vercel/analytics/astro'
 
 interface Props {
   title?: string;
@@ -42,6 +43,7 @@ const {
         }
       })();
     </script>
+    <Analytics />
   </head>
   <body class="antialiased" style="font-family: 'Roboto Mono', monospace;">
     <slot />
