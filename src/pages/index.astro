@@ -75,49 +75,50 @@ if (contentfulPhotos.length === 0) {
         }
       </div>
     </section>
+    <aside id="index-toast" class="index-toast" role="status" aria-live="polite">
+      <button id="index-toast-dismiss" type="button" class="index-toast__dismiss" aria-label="Dismiss keyboard navigation hint">×</button>
+      <p class="index-toast__title">Keyboard navigation</p>
+      <p><kbd>↑</kbd> Zoom in / fullscreen</p>
+      <p><kbd>←</kbd> Previous image</p>
+      <p><kbd>→</kbd> Next image</p>
+      <p><kbd>↓</kbd> Zoom out / exit</p>
+    </aside>
   </main>
 </Layout>
 
 <script is:inline>
   (() => {
-    const ARROW_UP_TOAST_SEEN_KEY = 'index-arrowup-toast-seen-v3';
+    const TOAST_DISMISSED_KEY = 'index-keyboard-toast-dismissed-v1';
 
-    const showArrowUpToastOnce = () => {
+    const initIndexShortcutsAndToast = () => {
+      const toast = document.getElementById('index-toast');
+      const dismissButton = document.getElementById('index-toast-dismiss');
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+      let isDismissed = false;
+
       try {
-        if (localStorage.getItem(ARROW_UP_TOAST_SEEN_KEY) === '1') return;
+        isDismissed = localStorage.getItem(TOAST_DISMISSED_KEY) === '1';
       } catch {
-        // Ignore storage failures and still show toast.
+        isDismissed = false;
       }
 
-      const toast = document.createElement('div');
-      toast.className = 'index-toast';
-      toast.setAttribute('role', 'status');
-      toast.setAttribute('aria-live', 'polite');
-      toast.textContent = 'Arrow up to dive in';
-      document.body.appendChild(toast);
-
-      requestAnimationFrame(() => {
-        toast.classList.add('is-visible');
-      });
-
-      setTimeout(() => {
-        toast.classList.remove('is-visible');
-        setTimeout(() => {
-          toast.remove();
+      if (!isDesktop || isDismissed) {
+        toast?.remove();
+      } else {
+        toast?.classList.add('is-visible');
+        dismissButton?.addEventListener('click', () => {
           try {
-            localStorage.setItem(ARROW_UP_TOAST_SEEN_KEY, '1');
+            localStorage.setItem(TOAST_DISMISSED_KEY, '1');
           } catch {
             // Ignore storage failures.
           }
-        }, 240);
-      }, 3200);
-    };
-
-    const initIndexShortcutsAndToast = () => {
-      showArrowUpToastOnce();
+          toast?.remove();
+        });
+      }
 
       document.addEventListener('keydown', (event) => {
         if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (window.location.pathname !== '/') return;
 
         const activeElement = document.activeElement;
         if (
@@ -130,11 +131,22 @@ if (contentfulPhotos.length === 0) {
           return;
         }
 
-        if (event.key !== 'ArrowUp') return;
-        const firstMasonryLink = document.querySelector('.masonry-link');
-        if (!(firstMasonryLink instanceof HTMLAnchorElement)) return;
-        event.preventDefault();
-        window.location.href = firstMasonryLink.href;
+        const masonryLinks = document.querySelectorAll('.masonry-link');
+        if (!masonryLinks.length) return;
+        const firstMasonryLink = masonryLinks[0];
+        const lastMasonryLink = masonryLinks[masonryLinks.length - 1];
+        if (!(firstMasonryLink instanceof HTMLAnchorElement) || !(lastMasonryLink instanceof HTMLAnchorElement)) return;
+
+        if (event.key === 'ArrowUp' || event.key === 'ArrowRight') {
+          event.preventDefault();
+          window.location.href = firstMasonryLink.href;
+          return;
+        }
+
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          window.location.href = lastMasonryLink.href;
+        }
       });
     };
 
@@ -152,16 +164,58 @@ if (contentfulPhotos.length === 0) {
     right: 16px;
     bottom: 16px;
     z-index: 60;
-    border-radius: 9999px;
+    border-radius: 12px;
     background: rgba(17, 24, 39, 0.9);
     color: #fff;
-    padding: 0.55rem 0.9rem;
-    font-size: 0.8rem;
-    line-height: 1;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.78rem;
+    line-height: 1.3;
+    min-width: 220px;
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 220ms ease, transform 220ms ease;
-    pointer-events: none;
+    pointer-events: auto;
+  }
+
+  .index-toast__dismiss {
+    position: absolute;
+    top: 0.28rem;
+    right: 0.4rem;
+    border: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .index-toast p {
+    margin: 0;
+  }
+
+  .index-toast p + p {
+    margin-top: 0.28rem;
+  }
+
+  .index-toast__title {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.28rem;
+  }
+
+  .index-toast kbd {
+    display: inline-flex;
+    min-width: 1.2rem;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.02rem 0.2rem;
+    font-size: 0.74rem;
+    line-height: 1.2;
+    margin-right: 0.25rem;
+    font-family: inherit;
   }
 
   .index-toast.is-visible {

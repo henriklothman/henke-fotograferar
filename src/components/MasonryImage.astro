@@ -32,6 +32,7 @@ const isExternalUrl = typeof src === 'string';
           width={width}
           height={height}
           class="masonry-photo h-full w-full object-cover"
+          data-masonry-photo
           loading="lazy"
           onload="this.classList.add('is-loaded')"
           onerror="this.classList.add('is-loaded')"
@@ -43,6 +44,7 @@ const isExternalUrl = typeof src === 'string';
           width={width}
           height={height}
           class="masonry-photo h-full w-full object-cover"
+          data-masonry-photo
           loading="lazy"
           onload="this.classList.add('is-loaded')"
           onerror="this.classList.add('is-loaded')"
@@ -57,6 +59,7 @@ const isExternalUrl = typeof src === 'string';
         width={width}
         height={height}
         class="masonry-photo h-full w-full object-cover"
+        data-masonry-photo
         loading="lazy"
         onload="this.classList.add('is-loaded')"
         onerror="this.classList.add('is-loaded')"
@@ -68,6 +71,7 @@ const isExternalUrl = typeof src === 'string';
         width={width}
         height={height}
         class="masonry-photo h-full w-full object-cover"
+        data-masonry-photo
         loading="lazy"
         onload="this.classList.add('is-loaded')"
         onerror="this.classList.add('is-loaded')"
@@ -82,6 +86,39 @@ const isExternalUrl = typeof src === 'string';
     ) : null
   }
 </figure>
+
+<script is:inline>
+  (() => {
+    if (window.__masonryPriorityInit === true) return;
+    window.__masonryPriorityInit = true;
+
+    const viewportPromotionMargin = window.matchMedia('(max-width: 767px)').matches ? '200px 0px' : '120px 0px';
+    const photos = document.querySelectorAll('img[data-masonry-photo]');
+    if (!photos.length) return;
+
+    const promote = (img) => {
+      if (!(img instanceof HTMLImageElement)) return;
+      if (img.dataset.priorityApplied === 'true') return;
+      img.loading = 'eager';
+      img.fetchPriority = 'high';
+      img.decoding = 'async';
+      img.dataset.priorityApplied = 'true';
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          promote(entry.target);
+          observer.unobserve(entry.target);
+        });
+      },
+      { root: null, rootMargin: viewportPromotionMargin, threshold: 0.01 },
+    );
+
+    photos.forEach((img) => observer.observe(img));
+  })();
+</script>
 
 <style>
   .masonry-photo {
