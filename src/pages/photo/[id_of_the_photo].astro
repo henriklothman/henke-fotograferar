@@ -47,6 +47,7 @@ const iso = selectedPhoto?.iso;
 const mediaAspectRatio = selectedPhoto ? `${selectedPhoto.width} / ${selectedPhoto.height}` : '16 / 10';
 const isPortraitMedia = selectedPhoto ? selectedPhoto.height > selectedPhoto.width : false;
 const mediaContentColumnClass = 'w-full';
+const mediaContainerClass = isPortraitMedia ? 'photo-media-container--portrait' : '';
 const mediaContainerStyle = isPortraitMedia
   ? `aspect-ratio: ${mediaAspectRatio}; height: min(70svh, 70vh); width: auto; max-width: 100%; margin-inline: auto;`
   : `aspect-ratio: ${mediaAspectRatio};`;
@@ -108,10 +109,22 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
     <section id="photo-page-section" class="pt-12">
       <div id="photo-media-column" class={mediaContentColumnClass}>
-      <div id="photo-media-container" class="group/media relative mt-8 overflow-hidden bg-stone-200 dark:bg-slate-800" style={mediaContainerStyle}>
+      <div id="photo-media-container" class:list={['group/media relative mt-8 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
         <div id="photo-media-controls" class="absolute top-4 right-4 z-40 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
+          {
+            leftLoopId && rightLoopId ? (
+              <>
+                <a id="photo-nav-left" href={`/photo/${encodeURIComponent(leftLoopId)}`} aria-label="Previous photo" class="group cursor-pointer transition-opacity hover:opacity-70">
+                  <span class="icon-mask control-overlay-muted-icon block h-3 w-3 transition-colors group-hover:bg-black" style={`--icon-url: url('${caretLeft.src}');`}></span>
+                </a>
+                <a id="photo-nav-right" href={`/photo/${encodeURIComponent(rightLoopId)}`} aria-label="Next photo" class="group cursor-pointer transition-opacity hover:opacity-70">
+                  <span class="icon-mask control-overlay-muted-icon block h-3 w-3 transition-colors group-hover:bg-black" style={`--icon-url: url('${caretRight.src}');`}></span>
+                </a>
+              </>
+            ) : null
+          }
           <button id="show-photo-button" type="button" aria-label="Show photo" class="group cursor-pointer transition-opacity hover:opacity-70">
-            <span id="camera-icon" class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-black" style={`--icon-url: url('${cameraIcon.src}');`}></span>
+            <span id="camera-icon" class="control-icon-active icon-mask block h-4 w-4 transition-colors" style={`--icon-url: url('${cameraIcon.src}');`}></span>
           </button>
           <button
             id="show-map-button"
@@ -120,42 +133,12 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             class={`group transition-opacity ${hasMapMedia ? 'cursor-pointer hover:opacity-70' : 'cursor-not-allowed opacity-40'}`}
             disabled={!hasMapMedia}
           >
-            <span id="location-icon" class="icon-mask block h-4 w-4 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${locationIcon.src}');`}></span>
+            <span id="location-icon" class="control-icon-inactive icon-mask block h-4 w-4 transition-colors" style={`--icon-url: url('${locationIcon.src}');`}></span>
           </button>
           <a href="/" aria-label="Back to gallery" class="group cursor-pointer">
-            <span class="icon-mask block h-3 w-3 bg-slate-400 transition-colors group-hover:bg-black" style={`--icon-url: url('${crossIcon.src}');`}></span>
+            <span class="icon-mask control-overlay-muted-icon block h-3 w-3 transition-colors group-hover:bg-black" style={`--icon-url: url('${crossIcon.src}');`}></span>
           </a>
         </div>
-        {
-          leftLoopId && rightLoopId ? (
-            <>
-              <a
-                id="photo-nav-left"
-                href={`/photo/${encodeURIComponent(leftLoopId)}`}
-                aria-label="Previous photo"
-                class="group absolute top-1/2 left-4 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-black md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100"
-              >
-                <span
-                  aria-hidden="true"
-                  class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-white"
-                  style={`--icon-url: url('${caretLeft.src}');`}
-                ></span>
-              </a>
-              <a
-                id="photo-nav-right"
-                href={`/photo/${encodeURIComponent(rightLoopId)}`}
-                aria-label="Next photo"
-                class="group absolute top-1/2 right-4 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-sm transition hover:bg-black md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100"
-              >
-                <span
-                  aria-hidden="true"
-                  class="icon-mask block h-4 w-4 bg-black transition-colors group-hover:bg-white"
-                  style={`--icon-url: url('${caretRight.src}');`}
-                ></span>
-              </a>
-            </>
-          ) : null
-        }
         {
           selectedPhoto ? (
             <div id="photo-media-image" class="absolute inset-0 z-0">
@@ -255,15 +238,15 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
     const setIconState = (mode) => {
       if (mode === 'map') {
-        cameraIcon.classList.remove('bg-black');
-        cameraIcon.classList.add('bg-slate-400');
-        locationIcon.classList.remove('bg-slate-400');
-        locationIcon.classList.add('bg-black');
+        cameraIcon.classList.remove('control-icon-active');
+        cameraIcon.classList.add('control-icon-inactive');
+        locationIcon.classList.remove('control-icon-inactive');
+        locationIcon.classList.add('control-icon-active');
       } else {
-        cameraIcon.classList.remove('bg-slate-400');
-        cameraIcon.classList.add('bg-black');
-        locationIcon.classList.remove('bg-black');
-        locationIcon.classList.add('bg-slate-400');
+        cameraIcon.classList.remove('control-icon-inactive');
+        cameraIcon.classList.add('control-icon-active');
+        locationIcon.classList.remove('control-icon-active');
+        locationIcon.classList.add('control-icon-inactive');
       }
     };
 
@@ -446,15 +429,23 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       const map = new google.maps.Map(canvas, {
         center,
         zoom: 16,
-        disableDefaultUI: true,
+        disableDefaultUI: false,
+        zoomControl: true,
+        zoomControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_BOTTOM,
+        },
         mapTypeControl: false,
+        scaleControl: true,
         streetViewControl: false,
         fullscreenControl: false,
         styles: [
           { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+          { featureType: 'road.arterial', elementType: 'labels.text', stylers: [{ visibility: 'on' }] },
+          { featureType: 'road.highway', elementType: 'labels.text', stylers: [{ visibility: 'on' }] },
+          { featureType: 'administrative.locality', elementType: 'labels.text', stylers: [{ visibility: 'on' }] },
           { featureType: 'poi', stylers: [{ visibility: 'off' }] },
           { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-          { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
+          { featureType: 'administrative', elementType: 'labels.text.stroke', stylers: [{ visibility: 'off' }] },
           { featureType: 'all', stylers: [{ saturation: -100 }, { lightness: 8 }] },
         ],
       });
@@ -815,6 +806,59 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     mask-size: contain;
   }
 
+  .control-overlay-muted-icon {
+    background-color: #94a3b8;
+  }
+
+  .control-icon-active,
+  .control-icon-inactive {
+    background-color: currentColor;
+  }
+
+  .control-icon-active {
+    color: #111827;
+  }
+
+  .control-icon-inactive {
+    color: #94a3b8;
+  }
+
+  :global(html[data-theme='dark']) #photo-media-container {
+    background-color: #1e293b;
+  }
+
+  :global(html[data-theme='dark']) #photo-media-controls {
+    background-color: #0f172a;
+  }
+
+  :global(html[data-theme='dark']) .control-overlay-muted-icon {
+    background-color: #64748b;
+  }
+
+  :global(html[data-theme='dark']) #photo-nav-left:hover .control-overlay-muted-icon,
+  :global(html[data-theme='dark']) #photo-nav-right:hover .control-overlay-muted-icon,
+  :global(html[data-theme='dark']) a[aria-label='Back to gallery']:hover .control-overlay-muted-icon {
+    background-color: #f8fafc;
+  }
+
+  :global(html[data-theme='dark']) .control-icon-active {
+    color: #f8fafc;
+  }
+
+  :global(html[data-theme='dark']) .control-icon-inactive {
+    color: #64748b;
+  }
+
+  #show-photo-button:hover .control-icon-inactive,
+  #show-map-button:hover .control-icon-inactive {
+    color: #111827;
+  }
+
+  :global(html[data-theme='dark']) #show-photo-button:hover .control-icon-inactive,
+  :global(html[data-theme='dark']) #show-map-button:hover .control-icon-inactive {
+    color: #f8fafc;
+  }
+
   .map-frame {
     filter: grayscale(1) saturate(0.3) hue-rotate(185deg) brightness(0.96) contrast(1.04);
   }
@@ -915,6 +959,12 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       height: 88svh !important;
       aspect-ratio: auto !important;
       margin-top: 0.75rem !important;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    #photo-media-container.photo-media-container--portrait {
+      height: min(90svh, 90vh) !important;
     }
   }
 
