@@ -63,6 +63,7 @@ const mapEmbedUrl =
       : null;
 const hasInteractiveMap = hasCoordinates;
 const hasMapMedia = Boolean(hasInteractiveMap || mapEmbedUrl);
+const mapMode = hasInteractiveMap ? 'interactive' : mapEmbedUrl ? 'fallback' : 'none';
 
 function ensureUnit(value: string | undefined, suffix: string): string | undefined {
   if (!value) return undefined;
@@ -130,8 +131,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             id="show-map-button"
             type="button"
             aria-label="Show map"
-            class={`group transition-opacity ${hasMapMedia ? 'cursor-pointer hover:opacity-70' : 'cursor-not-allowed opacity-40'}`}
-            disabled={!hasMapMedia}
+            class="group cursor-pointer transition-opacity hover:opacity-70"
           >
             <span id="location-icon" class="control-icon-inactive icon-mask block h-4 w-4 transition-colors" style={`--icon-url: url('${locationIcon.src}');`}></span>
           </button>
@@ -156,45 +156,45 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             </div>
           )
         }
-        {
-          hasMapMedia ? (
-            <div
-              id="photo-media-map"
-              class="absolute inset-0 z-10 hidden bg-white"
-              data-map-mode={hasInteractiveMap ? 'interactive' : 'fallback'}
-              data-lat={locationLat ?? ''}
-              data-lng={locationLon ?? ''}
-              data-target-lat={targetLocationLat ?? ''}
-              data-target-lng={targetLocationLon ?? ''}
-              data-google-api-key={googleMapsApiKey}
-              data-henks-icon={henksMarker.src}
-              data-target-icon={cameraIcon.src}
-            >
-              {
-                hasInteractiveMap ? (
-                  <div id="photo-media-map-canvas" class="h-full w-full"></div>
-                ) : (
-                  <>
-                    <iframe
-                      src={mapEmbedUrl ?? undefined}
-                      loading="lazy"
-                      referrerpolicy="no-referrer-when-downgrade"
-                      title={location ? `Map for ${location}` : 'Map'}
-                      class="map-frame h-full w-full border-0"
-                    ></iframe>
-                    <img
-                      src={henksMarker.src}
-                      alt=""
-                      aria-hidden="true"
-                      class="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 object-cover shadow-sm"
-                      style="width: 34px; height: 34px;"
-                    />
-                  </>
-                )
-              }
-            </div>
-          ) : null
-        }
+        <div
+          id="photo-media-map"
+          class="absolute inset-0 z-10 hidden bg-white"
+          data-map-mode={mapMode}
+          data-lat={locationLat ?? ''}
+          data-lng={locationLon ?? ''}
+          data-target-lat={targetLocationLat ?? ''}
+          data-target-lng={targetLocationLon ?? ''}
+          data-google-api-key={googleMapsApiKey}
+          data-henks-icon={henksMarker.src}
+          data-target-icon={cameraIcon.src}
+        >
+          {
+            hasInteractiveMap ? (
+              <div id="photo-media-map-canvas" class="h-full w-full"></div>
+            ) : hasMapMedia ? (
+              <>
+                <iframe
+                  src={mapEmbedUrl ?? undefined}
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  title={location ? `Map for ${location}` : 'Map'}
+                  class="map-frame h-full w-full border-0"
+                ></iframe>
+                <img
+                  src={henksMarker.src}
+                  alt=""
+                  aria-hidden="true"
+                  class="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 object-cover shadow-sm"
+                  style="width: 34px; height: 34px;"
+                />
+              </>
+            ) : (
+              <div class="photo-map-empty-state absolute inset-0 z-20 flex items-center justify-center px-6 text-center text-sm text-slate-500">
+                <span>Dang! No location avalable for</span> <span class="ml-2 text-black">"{title}"</span>
+              </div>
+            )
+          }
+        </div>
       </div>
 
       <div id="photo-meta">
@@ -233,6 +233,9 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     const leftNavLink = document.getElementById('photo-nav-left');
     const rightNavLink = document.getElementById('photo-nav-right');
     const IMMERSIVE_QUERY_PARAM = 'immersive';
+    const MEDIA_QUERY_PARAM = 'media';
+    const SCROLL_POSITION_STORAGE_KEY = 'photo-scroll-position-y';
+    let currentMediaMode = 'photo';
 
     if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
 
@@ -250,10 +253,24 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       }
     };
 
-    const showPhoto = () => {
+    const setMediaUrlState = (mode) => {
+      const url = new URL(window.location.href);
+      if (mode === 'map') {
+        url.searchParams.set(MEDIA_QUERY_PARAM, 'map');
+      } else {
+        url.searchParams.delete(MEDIA_QUERY_PARAM);
+      }
+      window.history.replaceState({}, '', url);
+    };
+
+    const showPhoto = ({ persistUrl = true } = {}) => {
       photoLayer.classList.remove('hidden');
       mapLayer?.classList.add('hidden');
+      currentMediaMode = 'photo';
       setIconState('photo');
+      if (persistUrl) {
+        setMediaUrlState('photo');
+      }
     };
 
     const isImmersiveMode = () => document.documentElement.classList.contains('photo-immersive');
@@ -270,13 +287,22 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
     const navigateToPhotoLink = (link) => {
       if (!(link instanceof HTMLAnchorElement)) return;
-      if (!isImmersiveMode()) {
-        link.click();
-        return;
+      try {
+        sessionStorage.setItem(SCROLL_POSITION_STORAGE_KEY, String(window.scrollY));
+      } catch {
+        // Ignore storage failures.
       }
-
       const url = new URL(link.href, window.location.origin);
-      url.searchParams.set(IMMERSIVE_QUERY_PARAM, '1');
+      if (isImmersiveMode()) {
+        url.searchParams.set(IMMERSIVE_QUERY_PARAM, '1');
+      } else {
+        url.searchParams.delete(IMMERSIVE_QUERY_PARAM);
+      }
+      if (currentMediaMode === 'map') {
+        url.searchParams.set(MEDIA_QUERY_PARAM, 'map');
+      } else {
+        url.searchParams.delete(MEDIA_QUERY_PARAM);
+      }
       window.location.href = url.toString();
     };
 
@@ -721,11 +747,15 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       }
     };
 
-    const showMap = async () => {
+    const showMap = async ({ persistUrl = true } = {}) => {
       if (!mapLayer) return;
       photoLayer.classList.add('hidden');
       mapLayer.classList.remove('hidden');
+      currentMediaMode = 'map';
       setIconState('map');
+      if (persistUrl) {
+        setMediaUrlState('map');
+      }
       await initInteractiveMap();
     };
 
@@ -745,6 +775,14 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     showPhotoButton.addEventListener('click', showPhoto);
     showMapButton?.addEventListener('click', () => {
       void showMap();
+    });
+    leftNavLink?.addEventListener('click', (event) => {
+      event.preventDefault();
+      navigateToPhotoLink(leftNavLink);
+    });
+    rightNavLink?.addEventListener('click', (event) => {
+      event.preventDefault();
+      navigateToPhotoLink(rightNavLink);
     });
 
     document.addEventListener('keydown', (event) => {
@@ -784,13 +822,36 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       }
     });
 
-    if (new URLSearchParams(window.location.search).get(IMMERSIVE_QUERY_PARAM) === '1') {
+    const initialSearchParams = new URLSearchParams(window.location.search);
+    if (initialSearchParams.get(MEDIA_QUERY_PARAM) === 'map' && mapLayer) {
+      void showMap({ persistUrl: false });
+    } else {
+      showPhoto({ persistUrl: false });
+    }
+
+    if (initialSearchParams.get(IMMERSIVE_QUERY_PARAM) === '1') {
       enterImmersivePhotoMode();
+    }
+
+    if (initialSearchParams.get(IMMERSIVE_QUERY_PARAM) !== '1') {
+      try {
+        const storedScrollY = sessionStorage.getItem(SCROLL_POSITION_STORAGE_KEY);
+        if (storedScrollY !== null) {
+          sessionStorage.removeItem(SCROLL_POSITION_STORAGE_KEY);
+          const scrollY = Number(storedScrollY);
+          if (Number.isFinite(scrollY) && scrollY > 0) {
+            requestAnimationFrame(() => {
+              window.scrollTo({ top: scrollY, behavior: 'auto' });
+            });
+          }
+        }
+      } catch {
+        // Ignore storage failures.
+      }
     }
 
     syncMetaWidthToMedia();
     window.addEventListener('resize', syncMetaWidthToMedia);
-    setIconState('photo');
   })();
 </script>
 
