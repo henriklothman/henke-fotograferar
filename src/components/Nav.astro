@@ -38,8 +38,14 @@ const isAboutTab = activeTab === 'about';
     }
   </a>
 
-  <div class="grid w-full grid-cols-[auto_auto_auto] items-center justify-center gap-x-5 sm:w-auto sm:justify-start sm:gap-x-7">
-      <a href="/" aria-label="Go to Photography" class="nav-focusable col-start-1 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5">
+  <div class="w-full sm:w-auto">
+    <div class="grid w-full grid-cols-[auto_auto_auto] items-center justify-center gap-x-5 sm:w-auto sm:justify-start sm:gap-x-7">
+      <a
+        href="/"
+        aria-label="Go to Photography"
+        class="nav-main-link nav-focusable col-start-1 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5"
+        data-inactive={activeTab !== 'photography'}
+      >
         {
           photoNav && activeTab === 'photography' ? (
             <span
@@ -49,18 +55,23 @@ const isAboutTab = activeTab === 'about';
             ></span>
           ) : (
             <div
-              class={`nav-active-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}
+              class={`nav-active-dot nav-main-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}
             ></div>
           )
         }
-        <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>
+        <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>
           Photography
         </p>
       </a>
 
-      <a href="/about" aria-label="Go to About" class="nav-focusable col-start-2 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5">
-        <div class={`nav-active-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
-        <p class={`text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
+      <a
+        href="/about"
+        aria-label="Go to About"
+        class="nav-main-link nav-focusable col-start-2 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5"
+        data-inactive={activeTab !== 'about'}
+      >
+        <div class={`nav-active-dot nav-main-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
+        <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
       </a>
 
       <button
@@ -77,17 +88,22 @@ const isAboutTab = activeTab === 'about';
           style={`--icon-url: url('${MoonStar.src}');`}
         ></span>
       </button>
+    </div>
 
     {
       photoNav ? (
-        <div class="nav-subitems col-start-1 row-start-2 mt-3 ml-0.5 justify-self-start">
+        <div class="nav-subitems mt-3 ml-0.5">
           {
             subNavItems.map((item, index) => {
               const isLast = index === subNavItems.length - 1;
               const connectorClass = isLast ? 'after:h-1/2' : 'after:h-full';
 
               return item.href ? (
-                <a href={item.href} class={`nav-focusable relative flex items-center gap-3 rounded-sm py-1 pl-4 text-sm leading-snug transition-opacity before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} hover:opacity-70 ${item.active ? 'font-medium text-black' : 'text-slate-500'}`}>
+                <a
+                  href={item.href}
+                  class={`nav-subitem-link nav-focusable relative flex items-center gap-3 rounded-sm py-1 pl-4 text-sm leading-snug transition-colors before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500 hover:text-black'}`}
+                  data-inactive={!item.active}
+                >
                   <span>{item.title}</span>
                 </a>
               ) : (
@@ -165,6 +181,22 @@ const isAboutTab = activeTab === 'about';
 
   .nav-logo:hover {
     transform: rotate(15deg);
+  }
+
+  .nav-main-link[data-inactive='true'] .nav-main-label {
+    transition: color 180ms ease;
+  }
+
+  .nav-main-link[data-inactive='true']:hover .nav-main-label {
+    color: #111827;
+  }
+
+  html[data-theme='dark'] .nav-main-link[data-inactive='true']:hover .nav-main-label {
+    color: #e5e7eb;
+  }
+
+  html[data-theme='dark'] .nav-subitem-link[data-inactive='true']:hover {
+    color: #e5e7eb;
   }
 
   .icon-mask {
