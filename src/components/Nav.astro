@@ -23,8 +23,9 @@ const subNavItems = photoNav?.items ?? [];
 const isAboutTab = activeTab === 'about';
 ---
 
-<nav class={`relative flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between ${className}`} data-name="Nav">
-  <a href="/" aria-label="Go to Photography home" class="nav-focusable relative h-18 w-18 shrink-0 rounded-sm transition-transform duration-200 hover:rotate-15">
+<div class={`nav-shell w-full ${className}`} data-name="NavShell">
+<nav class="nav-root relative flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between" data-name="Nav">
+  <a href="/" aria-label="Go to Photography home" class="nav-logo nav-focusable relative h-18 w-18 shrink-0 rounded-sm">
     {
       isAboutTab ? (
         <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={HenksLogo.src} />
@@ -79,7 +80,7 @@ const isAboutTab = activeTab === 'about';
 
     {
       photoNav ? (
-        <div class="col-start-1 row-start-2 mt-3 ml-0.5 justify-self-start">
+        <div class="nav-subitems col-start-1 row-start-2 mt-3 ml-0.5 justify-self-start">
           {
             subNavItems.map((item, index) => {
               const isLast = index === subNavItems.length - 1;
@@ -101,8 +102,71 @@ const isAboutTab = activeTab === 'about';
     }
   </div>
 </nav>
+</div>
+
+<script is:inline>
+  (() => {
+    const DESKTOP_QUERY = '(min-width: 768px)';
+    const COMPACT_SCROLL_Y = 900;
+
+    const initCompactNav = () => {
+      const nav = document.querySelector('[data-name="Nav"]');
+      if (!(nav instanceof HTMLElement)) return;
+      const shell = nav.closest('[data-name="NavShell"]');
+      if (!(shell instanceof HTMLElement)) return;
+
+      const mediaQuery = window.matchMedia(DESKTOP_QUERY);
+      const setShellHeight = () => {
+        shell.style.setProperty('--nav-shell-height', `${nav.offsetHeight}px`);
+      };
+
+      const updateCompactState = () => {
+        setShellHeight();
+
+        if (!mediaQuery.matches) {
+          nav.classList.remove('nav-compact');
+          shell.classList.remove('nav-shell-compact');
+          return;
+        }
+
+        if (window.scrollY > COMPACT_SCROLL_Y) {
+          nav.classList.add('nav-compact');
+          shell.classList.add('nav-shell-compact');
+        } else {
+          nav.classList.remove('nav-compact');
+          shell.classList.remove('nav-shell-compact');
+        }
+      };
+
+      setShellHeight();
+      updateCompactState();
+      window.addEventListener('scroll', updateCompactState, { passive: true });
+      window.addEventListener('resize', updateCompactState);
+      mediaQuery.addEventListener('change', updateCompactState);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCompactNav, { once: true });
+    } else {
+      initCompactNav();
+    }
+  })();
+</script>
 
 <style>
+  .nav-root {
+    transition: padding 180ms ease, gap 180ms ease, background-color 180ms ease, border-color 180ms ease;
+  }
+
+  .nav-logo {
+    transition: width 180ms ease, height 180ms ease, transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .nav-logo:hover {
+    transform: rotate(15deg);
+  }
+
   .icon-mask {
     -webkit-mask-image: var(--icon-url);
     mask-image: var(--icon-url);
@@ -145,6 +209,52 @@ const isAboutTab = activeTab === 'about';
 
   html[data-theme='dark'] .nav-focusable:focus-visible {
     outline-color: rgba(255, 255, 255, 0.45);
+  }
+
+  @media (min-width: 768px) {
+    .nav-shell.nav-shell-compact {
+      min-height: var(--nav-shell-height, 0px);
+    }
+
+    .nav-root.nav-compact {
+      position: fixed;
+      top: 10px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      z-index: 70;
+      width: min(760px, calc(100vw - 24px));
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.68);
+      backdrop-filter: blur(12px);
+      padding: 0.45rem 0.56rem;
+      gap: 0.6rem;
+      animation: nav-compact-in 180ms ease-out;
+    }
+
+    .nav-root.nav-compact .nav-logo {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+
+    .nav-root.nav-compact .nav-subitems {
+      display: none;
+    }
+
+    html[data-theme='dark'] .nav-root.nav-compact {
+      background: rgba(2, 6, 23, 0.65);
+    }
+  }
+
+  @keyframes nav-compact-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
 </style>
