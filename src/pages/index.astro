@@ -96,6 +96,18 @@ if (contentfulPhotos.length === 0) {
       const toast = document.getElementById('index-toast');
       const dismissButton = document.getElementById('index-toast-dismiss');
       const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+      const getMasonryLinksInVisualOrder = () => {
+        const rowTolerance = 12;
+        return Array.from(document.querySelectorAll('.masonry-link'))
+          .filter((link) => link instanceof HTMLAnchorElement)
+          .sort((leftLink, rightLink) => {
+            const leftRect = leftLink.getBoundingClientRect();
+            const rightRect = rightLink.getBoundingClientRect();
+            const topDelta = leftRect.top - rightRect.top;
+            if (Math.abs(topDelta) > rowTolerance) return topDelta;
+            return leftRect.left - rightRect.left;
+          });
+      };
       let isDismissed = false;
 
       try {
@@ -119,7 +131,7 @@ if (contentfulPhotos.length === 0) {
       }
 
       document.addEventListener('keydown', (event) => {
-        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
         if (window.location.pathname !== '/') return;
 
         const activeElement = document.activeElement;
@@ -138,6 +150,22 @@ if (contentfulPhotos.length === 0) {
         const firstMasonryLink = masonryLinks[0];
         const lastMasonryLink = masonryLinks[masonryLinks.length - 1];
         if (!(firstMasonryLink instanceof HTMLAnchorElement) || !(lastMasonryLink instanceof HTMLAnchorElement)) return;
+
+        if (event.key === 'Tab' && activeElement instanceof HTMLAnchorElement && activeElement.classList.contains('masonry-link')) {
+          const orderedLinks = getMasonryLinksInVisualOrder();
+          const currentIndex = orderedLinks.indexOf(activeElement);
+          if (currentIndex === -1) return;
+
+          const direction = event.shiftKey ? -1 : 1;
+          const nextIndex = currentIndex + direction;
+          if (nextIndex < 0 || nextIndex >= orderedLinks.length) return;
+
+          const nextLink = orderedLinks[nextIndex];
+          if (!(nextLink instanceof HTMLAnchorElement)) return;
+          event.preventDefault();
+          nextLink.focus();
+          return;
+        }
 
         if (event.key === 'ArrowUp' || event.key === 'ArrowRight') {
           event.preventDefault();
