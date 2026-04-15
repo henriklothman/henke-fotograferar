@@ -123,7 +123,8 @@ const isExternalUrl = typeof src === 'string';
 <style>
   .masonry-photo {
     opacity: 0;
-    transition: opacity 420ms ease-out, transform 500ms ease-out;
+    transform: scale(1);
+    transition: opacity 420ms ease-out, transform 3400ms cubic-bezier(0.16, 0.78, 0.2, 1);
     will-change: opacity, transform;
   }
 
@@ -131,8 +132,9 @@ const isExternalUrl = typeof src === 'string';
     opacity: 1;
   }
 
-  .group:hover .masonry-photo {
-    transform: scale(1.02);
+  .group:hover .masonry-photo,
+  .group:focus-within .masonry-photo {
+    transform: scale(1.16);
   }
 
   .masonry-link:focus-visible {
