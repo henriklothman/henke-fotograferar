@@ -70,48 +70,102 @@ const timeline = [
 ---
 
 <Layout title="About | hnrik.com" description="About Henrik Löthman and this photography portfolio.">
-  <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
-    <Nav activeTab="about" />
-    <section class="pt-16 space-y-12">
-      <h1 class="text-2xl text-black sm:text-4xl" data-reveal style="--reveal-delay: 40ms;">Hi, I'm Henrik</h1>
-      <p class="mt-4 text-2xl text-slate-500 leading-relaxed sm:text-4xl" data-reveal style="--reveal-delay: 120ms;">I work as a engineer at <a href="https://www.lyftio.com" class="text-black underline" target="_blank">Lyftio.com</a> where I focus on UI/UX. I do photography as a hobby where I tend to update my <a href="https://www.instagram.com/henriklot/" class="text-black underline" target="_blank">instagram</a> more often than this Astro.js application hosted on Vercel and Contentful as CMS.</p>
-    </section>
-    <section class="pt-16 space-y-12">
-      <p class="text-black text-lg font-semibold" data-reveal style="--reveal-delay: 180ms;">Stuff I've done</p>
-      <div class="space-y-12">
-        {
-          timeline.map((item, index) => (
-            <article
-              class="grid grid-cols-1 gap-y-4 sm:grid-cols-[160px_1fr] sm:gap-x-32"
-              data-reveal
-              style={`--reveal-delay: ${220 + index * 70}ms;`}
-            >
-              <div class="space-y-2">
-                {item.placement ? <p class=" text-black">{item.placement}</p> : null}
-                <p class="text-slate-500 text-sm">{item.date}</p>
-              </div>
-              <div class="w-full max-w-2xl justify-self-center text-left">
-                <h2 class="text-lg text-black">{item.title}</h2>
-                <p class="mt-1 text-base leading-relaxed text-slate-600">{item.description}</p>
-                {
-                  item.bullets?.length ? (
-                    <ul class="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-500">
-                      {item.bullets.map((bullet) => (
-                        <li>{bullet}</li>
-                      ))}
-                    </ul>
-                  ) : null
-                }
-              </div>
-            </article>
-          ))
-        }
+  <main class="w-full p-4 sm:p-10 lg:p-12">
+    <div class="lg:grid lg:grid-cols-[minmax(180px,16%)_minmax(0,1fr)] lg:gap-x-12">
+      <Nav activeTab="about" />
+      <div class="px-2 pt-12 pb-16 sm:px-4 sm:pt-14 sm:pb-20 lg:px-6 lg:pt-12 lg:pb-24">
+        <section class="space-y-12">
+          <h1 class="text-2xl text-black sm:text-4xl" data-reveal style="--reveal-delay: 40ms;">Hi, I'm Henrik</h1>
+          <p class="mt-4 text-2xl text-slate-500 leading-relaxed sm:text-4xl" data-reveal style="--reveal-delay: 120ms;">I work as a engineer at <a href="https://www.lyftio.com" class="text-black underline" target="_blank">Lyftio.com</a> where I focus on UI/UX. I do photography as a hobby where I tend to update my <a href="https://www.instagram.com/henriklot/" class="text-black underline" target="_blank">instagram</a> more often than this Astro.js application hosted on Vercel and Contentful as CMS.</p>
+        </section>
+        <section class="pt-16 space-y-12">
+          <p class="text-black text-lg font-semibold" data-reveal style="--reveal-delay: 180ms;">Stuff I've done</p>
+          <div class="timeline" data-reveal style="--reveal-delay: 220ms;">
+            {
+              timeline.map((item, index) => (
+                <article
+                  class="timeline-item"
+                  data-reveal
+                  style={`--reveal-delay: ${220 + index * 70}ms;`}
+                >
+                  <span class="timeline-dot" aria-hidden="true"></span>
+                  <div class="timeline-content grid grid-cols-1 gap-y-4 sm:grid-cols-[170px_1fr] sm:gap-x-16">
+                    <div class="space-y-2">
+                      {item.placement ? <p class="text-black">{item.placement}</p> : null}
+                      <p class="text-slate-500 text-sm">{item.date}</p>
+                    </div>
+                    <div class="timeline-card w-full max-w-2xl text-left">
+                      <h2 class="text-lg text-black">{item.title}</h2>
+                      {item.description ? <p class="mt-1 text-base leading-relaxed text-slate-600">{item.description}</p> : null}
+                    {
+                      item.bullets?.length ? (
+                        <ul class="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-500">
+                          {item.bullets.map((bullet) => (
+                            <li>{bullet}</li>
+                          ))}
+                        </ul>
+                      ) : null
+                    }
+                    </div>
+                  </div>
+                </article>
+              ))
+            }
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
   </main>
 </Layout>
 
 <style>
+  .timeline {
+    --timeline-axis: 0.5rem;
+    --timeline-content-offset: 2rem;
+    --timeline-line-color: #cbd5e1;
+    position: relative;
+    padding-left: var(--timeline-content-offset);
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: var(--timeline-axis);
+    top: 0.25rem;
+    bottom: 0.25rem;
+    width: 1px;
+    background: var(--timeline-line-color);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 2.75rem;
+  }
+
+  .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    top: calc(0.5rem - 4px);
+    left: calc(var(--timeline-axis) - var(--timeline-content-offset));
+    width: 1rem;
+    height: 1rem;
+    transform: translateX(-50%);
+    border-radius: 9999px;
+    background: var(--theme-bg);
+    border: 2px solid var(--timeline-line-color);
+  }
+
+  .timeline-content {
+    min-width: 0;
+  }
+
+  .timeline-card {
+    padding-left: 1rem;
+  }
+
   [data-reveal] {
     opacity: 0;
     transform: translateY(8px);
@@ -123,6 +177,28 @@ const timeline = [
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  :global(html[data-theme='dark']) .timeline {
+    --timeline-line-color: #334155;
+  }
+
+  @media (max-width: 639px) {
+    .timeline {
+      padding-left: 0;
+    }
+
+    .timeline::before {
+      display: none;
+    }
+
+    .timeline-dot {
+      display: none;
+    }
+
+    .timeline-card {
+      padding-left: 0;
     }
   }
 

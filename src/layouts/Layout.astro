@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import Footer from '../components/Footer.astro';
 import Analytics from '@vercel/analytics/astro'
 import SpeedInsights from "@vercel/speed-insights/astro"
 
@@ -57,7 +56,6 @@ const {
   </head>
   <body class="antialiased" style="font-family: 'Roboto Mono', monospace;">
     <slot />
-    <Footer />
     <script is:inline>
       (() => {
         const STORAGE_KEY = 'theme-preference';
@@ -70,6 +68,11 @@ const {
             const iconPath = theme === 'dark' ? iconOn : iconOff;
             if (!iconPath) return;
             iconEl.style.setProperty('--icon-url', `url('${iconPath}')`);
+          });
+          document.querySelectorAll('[data-theme-label]').forEach((labelEl) => {
+            const labelOn = labelEl.getAttribute('data-label-on');
+            const labelOff = labelEl.getAttribute('data-label-off');
+            labelEl.textContent = theme === 'dark' ? (labelOn ?? '') : (labelOff ?? '');
           });
         };
 

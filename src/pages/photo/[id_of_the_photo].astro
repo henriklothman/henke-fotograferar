@@ -49,7 +49,7 @@ const isPortraitMedia = selectedPhoto ? selectedPhoto.height > selectedPhoto.wid
 const mediaContentColumnClass = 'w-full';
 const mediaContainerClass = isPortraitMedia ? 'photo-media-container--portrait' : '';
 const mediaContainerStyle = isPortraitMedia
-  ? `aspect-ratio: ${mediaAspectRatio}; height: min(70svh, 70vh); width: auto; max-width: 100%; margin-inline: auto;`
+  ? `aspect-ratio: ${mediaAspectRatio}; width: auto; max-width: 100%; margin-inline: auto;`
   : `aspect-ratio: ${mediaAspectRatio};`;
 const locationQuery =
   typeof locationLat === 'number' && typeof locationLon === 'number' ? `${locationLat},${locationLon}` : location;
@@ -98,19 +98,20 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 ---
 
 <Layout title={`${title} | hnrik.com`} description={description}>
-  <main id="photo-page-main" class="mx-auto max-w-7xl px-6 pb-20 pt-17">
-    <div id="photo-page-nav">
-      <Nav
-        activeTab="photography"
-        photoNav={{
-          items: navItems,
-        }}
-      />
-    </div>
+  <main id="photo-page-main" class="w-full p-4 sm:p-10 lg:p-12">
+    <div class="lg:grid lg:grid-cols-[minmax(180px,16%)_minmax(0,1fr)] lg:gap-x-12">
+      <div id="photo-page-nav">
+        <Nav
+          activeTab="photography"
+          photoNav={{
+            items: navItems,
+          }}
+        />
+      </div>
 
-    <section id="photo-page-section" class="pt-12">
-      <div id="photo-media-column" class={mediaContentColumnClass}>
-      <div id="photo-media-container" class:list={['group/media relative mt-8 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
+      <section id="photo-page-section" class="pt-10 lg:pt-0">
+        <div id="photo-media-column" class={mediaContentColumnClass}>
+        <div id="photo-media-container" class:list={['group/media relative mt-4 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
         <div id="photo-media-controls" class="absolute top-4 right-4 z-40 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
           {
             leftLoopId && rightLoopId ? (
@@ -197,24 +198,25 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         </div>
       </div>
 
-      <div id="photo-meta">
-        {exposureLine ? <p class="mt-6 text-base text-stone-600">{exposureLine}</p> : null}
-        {
-          description ? (
-            <div class="mt-6 flex max-w-3xl items-center gap-3">
-              <img
-                src={henksMarker.src}
-                alt=""
-                aria-hidden="true"
-                class="h-7 w-7 shrink-0 rounded-full border border-white/80 object-cover shadow-sm"
-              />
-              <p class="text-sm leading-relaxed text-slate-500">{description}</p>
-            </div>
-          ) : null
-        }
-      </div>
-      </div>
-    </section>
+        <div id="photo-meta">
+          {exposureLine ? <p class="mt-6 text-base text-stone-600">{exposureLine}</p> : null}
+          {
+            description ? (
+              <div class="mt-6 flex max-w-3xl items-center gap-3">
+                <img
+                  src={henksMarker.src}
+                  alt=""
+                  aria-hidden="true"
+                  class="h-7 w-7 shrink-0 rounded-full border border-white/80 object-cover shadow-sm"
+                />
+                <p class="text-sm leading-relaxed text-slate-500">{description}</p>
+              </div>
+            ) : null
+          }
+        </div>
+        </div>
+      </section>
+    </div>
   </main>
 </Layout>
 
@@ -785,6 +787,28 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       }
     };
 
+    const syncMediaHeightToViewport = () => {
+      if (!mediaContainer) return;
+      if (isImmersiveMode()) {
+        mediaContainer.style.removeProperty('--media-fit-height');
+        return;
+      }
+
+      const topOffset = mediaContainer.getBoundingClientRect().top;
+      const viewportHeight = window.innerHeight;
+      const hasMetaContent = Boolean(photoMeta && photoMeta.textContent?.trim());
+      const metaHeight = hasMetaContent && photoMeta ? photoMeta.getBoundingClientRect().height : 0;
+      const metaSpacing = hasMetaContent ? 28 : 0;
+      const footerBuffer = window.matchMedia('(min-width: 1024px)').matches ? 34 : 22;
+      const availableHeight = Math.floor(viewportHeight - topOffset - metaHeight - metaSpacing - footerBuffer);
+
+      if (availableHeight > 220) {
+        mediaContainer.style.setProperty('--media-fit-height', `${availableHeight}px`);
+      } else {
+        mediaContainer.style.removeProperty('--media-fit-height');
+      }
+    };
+
     showPhotoButton.addEventListener('click', showPhoto);
     showMapButton?.addEventListener('click', () => {
       void showMap();
@@ -864,7 +888,11 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     }
 
     syncMetaWidthToMedia();
-    window.addEventListener('resize', syncMetaWidthToMedia);
+    syncMediaHeightToViewport();
+    window.addEventListener('resize', () => {
+      syncMetaWidthToMedia();
+      syncMediaHeightToViewport();
+    });
   })();
 </script>
 
@@ -975,6 +1003,10 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     margin-inline: auto;
   }
 
+  #photo-media-container {
+    height: var(--media-fit-height, auto);
+  }
+
   html.photo-immersive body {
     overflow: hidden;
   }
@@ -1034,7 +1066,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
     #photo-media-container {
       width: 100% !important;
-      height: 88svh !important;
+      height: min(88svh, var(--media-fit-height, 88svh)) !important;
       aspect-ratio: auto !important;
       margin-top: 0.75rem !important;
     }
@@ -1047,7 +1079,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
   @media (min-width: 1280px) {
     #photo-media-container.photo-media-container--portrait {
-      height: min(90svh, 90vh) !important;
+      height: min(90svh, var(--media-fit-height, 90svh)) !important;
     }
   }
 

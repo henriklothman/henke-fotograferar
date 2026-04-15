@@ -5,6 +5,8 @@ import HenksLogo from '../assets/henks.png';
 import Cross from '../assets/cross.svg';
 import MoonStar from '../assets/moon_star.svg';
 import Sun from '../assets/sun.svg';
+import Instagram from '../assets/instagram.svg';
+import Linkedin from '../assets/linkedin.svg';
 
 interface Props {
   className?: string;
@@ -24,71 +26,58 @@ const isAboutTab = activeTab === 'about';
 ---
 
 <div class={`nav-shell w-full ${className}`} data-name="NavShell">
-<nav class="nav-root relative flex w-full flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between" data-name="Nav">
-  <a href="/" aria-label="Go to Photography home" class="nav-logo nav-focusable relative h-18 w-18 shrink-0 rounded-sm">
-    {
-      isAboutTab ? (
-        <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={HenksLogo.src} />
-      ) : (
-        <>
-          <img alt="Henrik Löthman" class="theme-logo-light absolute inset-0 h-full w-full object-cover" src={Logo.src} />
-          <img alt="Henrik Löthman" class="theme-logo-dark absolute inset-0 h-full w-full object-cover" src={LogoDark.src} />
-        </>
-      )
-    }
-  </a>
+<nav class="nav-root relative flex w-full flex-col gap-5 py-1.5 lg:pt-12 lg:pb-3" data-name="Nav">
+  <div class="nav-top flex items-center justify-between lg:block">
+    <a href="/" aria-label="Go to Photography home" class="nav-logo nav-focusable nav-reveal-item relative block h-18 w-18 shrink-0 rounded-sm" data-nav-reveal>
+      {
+        isAboutTab ? (
+          <img alt="Henrik Löthman" class="absolute inset-0 h-full w-full object-cover" src={HenksLogo.src} />
+        ) : (
+          <>
+            <img alt="Henrik Löthman" class="theme-logo-light absolute inset-0 h-full w-full object-cover" src={Logo.src} />
+            <img alt="Henrik Löthman" class="theme-logo-dark absolute inset-0 h-full w-full object-cover" src={LogoDark.src} />
+          </>
+        )
+      }
+    </a>
 
-  <div class="w-full sm:w-auto">
-    <div class="grid w-full grid-cols-[auto_auto_auto] items-center justify-center gap-x-5 sm:w-auto sm:justify-start sm:gap-x-7">
-      <a
-        href="/"
-        aria-label="Go to Photography"
-        class="nav-main-link nav-focusable col-start-1 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5"
-        data-inactive={activeTab !== 'photography'}
-      >
-        {
-          photoNav && activeTab === 'photography' ? (
-            <span
-              aria-hidden="true"
-              class="nav-cross icon-mask block h-2.5 w-2.5 bg-black opacity-90"
-              style={`--icon-url: url('${Cross.src}');`}
-            ></span>
-          ) : (
-            <div
-              class={`nav-active-dot nav-main-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'photography' ? 'opacity-100' : 'opacity-0'}`}
-            ></div>
-          )
-        }
-        <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>
-          Photography
-        </p>
-      </a>
+    <button
+      type="button"
+      class="nav-mobile-toggle nav-focusable lg:hidden"
+      data-nav-menu-toggle
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+    >
+      <span class="nav-mobile-toggle-line"></span>
+      <span class="nav-mobile-toggle-line"></span>
+      <span class="nav-mobile-toggle-line"></span>
+    </button>
+  </div>
 
-      <a
-        href="/about"
-        aria-label="Go to About"
-        class="nav-main-link nav-focusable col-start-2 row-start-1 flex items-center gap-2.5 rounded-sm px-1 py-0.5"
-        data-inactive={activeTab !== 'about'}
-      >
-        <div class={`nav-active-dot nav-main-dot h-1.75 w-1.75 rounded-full bg-black transition-opacity ${activeTab === 'about' ? 'opacity-100' : 'opacity-0'}`}></div>
-        <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
-      </a>
-
-      <button
-        type="button"
-        aria-label="Toggle light and dark mode"
-        data-theme-toggle
-        class="nav-focusable col-start-3 row-start-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-sm"
-      >
-        <span
-          data-theme-icon
-          data-icon-on={Sun.src}
-          data-icon-off={MoonStar.src}
-          class="icon-mask block h-5 w-5 bg-black transition-colors"
-          style={`--icon-url: url('${MoonStar.src}');`}
-        ></span>
-      </button>
-    </div>
+  <div class="nav-menu w-full" data-nav-menu>
+  <div class="nav-primary w-full">
+    <a
+      href="/"
+      aria-label="Go to Photography"
+      class="nav-main-link nav-focusable nav-reveal-item flex items-center gap-2.5 rounded-sm px-1 py-0.5"
+      data-inactive={activeTab !== 'photography'}
+      data-nav-reveal
+    >
+      {
+        photoNav && activeTab === 'photography' ? (
+          <span
+            aria-hidden="true"
+            class="nav-cross icon-mask block h-2.5 w-2.5 bg-black opacity-90"
+            style={`--icon-url: url('${Cross.src}');`}
+          ></span>
+        ) : (
+          null
+        )
+      }
+      <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'photography' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>
+        Photography
+      </p>
+    </a>
 
     {
       photoNav ? (
@@ -101,13 +90,14 @@ const isAboutTab = activeTab === 'about';
               return item.href ? (
                 <a
                   href={item.href}
-                  class={`nav-subitem-link nav-focusable relative flex items-center gap-3 rounded-sm py-1 pl-4 text-sm leading-snug transition-colors before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500 hover:text-black'}`}
+                  class={`nav-subitem-link nav-focusable nav-reveal-item relative flex items-center gap-3 rounded-sm py-1 pl-4 text-sm leading-snug transition-colors before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500 hover:text-black'}`}
                   data-inactive={!item.active}
+                  data-nav-reveal
                 >
                   <span>{item.title}</span>
                 </a>
               ) : (
-                <p class={`relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500'}`}>
+                <p class={`nav-reveal-item relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500'}`} data-nav-reveal>
                   <span>{item.title}</span>
                 </p>
               );
@@ -116,62 +106,224 @@ const isAboutTab = activeTab === 'about';
         </div>
       ) : null
     }
+
+    <a
+      href="/about"
+      aria-label="Go to About"
+      class="nav-main-link nav-focusable nav-reveal-item mt-4 flex items-center gap-2.5 rounded-sm px-1 py-0.5"
+      data-inactive={activeTab !== 'about'}
+      data-nav-reveal
+    >
+      <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
+    </a>
+  </div>
+
+  <div class="nav-secondary w-full">
+    <button
+      type="button"
+      aria-label="Toggle light and dark mode"
+      data-theme-toggle
+      class="nav-secondary-link nav-focusable nav-reveal-item mt-3 flex cursor-pointer items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black"
+      data-nav-reveal
+    >
+      <span
+        data-theme-icon
+        data-icon-on={Sun.src}
+        data-icon-off={MoonStar.src}
+        class="icon-mask block h-4 w-4 bg-current transition-colors"
+        style={`--icon-url: url('${MoonStar.src}');`}
+      ></span>
+      <span data-theme-label data-label-on="Turns lights on" data-label-off="Turn lights off">Turn lights off</span>
+    </button>
+
+    <a
+      href="https://www.instagram.com/henriklot/"
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label="Instagram"
+      class="nav-secondary-link nav-focusable nav-reveal-item mt-3 flex items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black"
+      data-nav-reveal
+    >
+      <span
+        aria-hidden="true"
+        class="icon-mask block h-4 w-4 bg-current"
+        style={`--icon-url: url('${Instagram.src}');`}
+      ></span>
+      <span>Instagram</span>
+    </a>
+
+    <a
+      href="https://www.linkedin.com/in/henriklothman/"
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label="LinkedIn"
+      class="nav-secondary-link nav-focusable nav-reveal-item mt-2 flex items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black"
+      data-nav-reveal
+    >
+      <span
+        aria-hidden="true"
+        class="icon-mask block h-4 w-4 bg-current"
+        style={`--icon-url: url('${Linkedin.src}');`}
+      ></span>
+      <span>LinkedIn</span>
+    </a>
+
+    <p class="nav-reveal-item mt-4 hidden px-1 text-xs leading-relaxed text-slate-500 md:block" data-nav-reveal>
+      Henrik Löthman is a Swedish product developer capturing quiet moments, light and structure.
+    </p>
+  </div>
   </div>
 </nav>
 </div>
 
 <script is:inline>
   (() => {
-    const DESKTOP_QUERY = '(min-width: 768px)';
-    const COMPACT_SCROLL_Y = 900;
+    const SESSION_KEY = 'nav-reveal-played-v1';
+    const DESKTOP_QUERY = '(min-width: 1024px)';
 
-    const initCompactNav = () => {
-      const nav = document.querySelector('[data-name="Nav"]');
-      if (!(nav instanceof HTMLElement)) return;
-      const shell = nav.closest('[data-name="NavShell"]');
-      if (!(shell instanceof HTMLElement)) return;
+    const initNavReveal = () => {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const navs = document.querySelectorAll('[data-name="Nav"]');
+      if (!navs.length) return;
 
-      const mediaQuery = window.matchMedia(DESKTOP_QUERY);
-      const setShellHeight = () => {
-        shell.style.setProperty('--nav-shell-height', `${nav.offsetHeight}px`);
-      };
+      navs.forEach((nav) => {
+        if (!(nav instanceof HTMLElement)) return;
+        const revealItems = Array.from(nav.querySelectorAll('[data-nav-reveal]'));
+        revealItems.forEach((item, index) => {
+          if (item instanceof HTMLElement) {
+            item.style.setProperty('--nav-reveal-index', String(index));
+          }
+        });
 
-      const updateCompactState = () => {
-        setShellHeight();
+        let hasPlayed = false;
+        try {
+          hasPlayed = sessionStorage.getItem(SESSION_KEY) === '1';
+        } catch {
+          hasPlayed = false;
+        }
 
-        if (!mediaQuery.matches) {
-          nav.classList.remove('nav-compact');
-          shell.classList.remove('nav-shell-compact');
+        if (prefersReducedMotion || hasPlayed) {
+          nav.classList.add('nav-reveal-done');
           return;
         }
 
-        if (window.scrollY > COMPACT_SCROLL_Y) {
-          nav.classList.add('nav-compact');
-          shell.classList.add('nav-shell-compact');
-        } else {
-          nav.classList.remove('nav-compact');
-          shell.classList.remove('nav-shell-compact');
+        nav.classList.add('nav-animate-in');
+        try {
+          sessionStorage.setItem(SESSION_KEY, '1');
+        } catch {
+          // Ignore storage failures.
         }
-      };
+      });
+    };
 
-      setShellHeight();
-      updateCompactState();
-      window.addEventListener('scroll', updateCompactState, { passive: true });
-      window.addEventListener('resize', updateCompactState);
-      mediaQuery.addEventListener('change', updateCompactState);
+    const initMobileMenu = () => {
+      const navs = document.querySelectorAll('[data-name="Nav"]');
+      if (!navs.length) return;
+
+      navs.forEach((nav) => {
+        if (!(nav instanceof HTMLElement)) return;
+        const toggle = nav.querySelector('[data-nav-menu-toggle]');
+        const menu = nav.querySelector('[data-nav-menu]');
+        if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement)) return;
+
+        const desktopMedia = window.matchMedia(DESKTOP_QUERY);
+        const setExpandedState = () => {
+          if (desktopMedia.matches) {
+            toggle.setAttribute('aria-expanded', 'true');
+            return;
+          }
+          toggle.setAttribute('aria-expanded', nav.classList.contains('nav-menu-open') ? 'true' : 'false');
+        };
+
+        toggle.addEventListener('click', () => {
+          nav.classList.toggle('nav-menu-open');
+          setExpandedState();
+        });
+
+        menu.querySelectorAll('a').forEach((link) => {
+          link.addEventListener('click', () => {
+            if (desktopMedia.matches) return;
+            nav.classList.remove('nav-menu-open');
+            setExpandedState();
+          });
+        });
+
+        desktopMedia.addEventListener('change', () => {
+          if (desktopMedia.matches) {
+            nav.classList.remove('nav-menu-open');
+          }
+          setExpandedState();
+        });
+
+        setExpandedState();
+      });
     };
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initCompactNav, { once: true });
+      document.addEventListener('DOMContentLoaded', () => {
+        initMobileMenu();
+        initNavReveal();
+      }, { once: true });
     } else {
-      initCompactNav();
+      initMobileMenu();
+      initNavReveal();
     }
   })();
 </script>
 
 <style>
   .nav-root {
-    transition: padding 180ms ease, gap 180ms ease, background-color 180ms ease, border-color 180ms ease;
+    transition: gap 180ms ease;
+  }
+
+  .nav-menu {
+    display: none;
+  }
+
+  .nav-root.nav-menu-open .nav-menu {
+    display: block;
+  }
+
+  .nav-mobile-toggle {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.28rem;
+    min-height: 2.25rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 0.125rem;
+    color: #64748b;
+  }
+
+  .nav-mobile-toggle-line {
+    width: 1.2rem;
+    height: 1px;
+    background-color: currentColor;
+    transition: transform 180ms ease, opacity 180ms ease;
+  }
+
+  .nav-root.nav-menu-open .nav-mobile-toggle-line:nth-child(1) {
+    transform: translateY(5px) rotate(45deg);
+  }
+
+  .nav-root.nav-menu-open .nav-mobile-toggle-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-root.nav-menu-open .nav-mobile-toggle-line:nth-child(3) {
+    transform: translateY(-5px) rotate(-45deg);
+  }
+
+  .nav-reveal-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .nav-root.nav-animate-in .nav-reveal-item {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: nav-reveal-in 520ms ease-out forwards;
+    animation-delay: calc(var(--nav-reveal-index, 0) * 70ms);
   }
 
   .nav-logo {
@@ -199,6 +351,18 @@ const isAboutTab = activeTab === 'about';
     color: #e5e7eb;
   }
 
+  html[data-theme='dark'] .nav-secondary-link {
+    color: #94a3b8;
+  }
+
+  html[data-theme='dark'] .nav-secondary-link:hover {
+    color: #e5e7eb;
+  }
+
+  html[data-theme='dark'] .nav-mobile-toggle {
+    color: #94a3b8;
+  }
+
   .icon-mask {
     -webkit-mask-image: var(--icon-url);
     mask-image: var(--icon-url);
@@ -222,14 +386,6 @@ const isAboutTab = activeTab === 'about';
     display: block;
   }
 
-  html[data-theme='dark'] [data-theme-icon] {
-    background-color: #ffffff;
-  }
-
-  html[data-theme='dark'] .nav-active-dot {
-    background-color: #ffffff;
-  }
-
   html[data-theme='dark'] .nav-cross {
     background-color: #ffffff;
   }
@@ -243,50 +399,49 @@ const isAboutTab = activeTab === 'about';
     outline-color: rgba(255, 255, 255, 0.45);
   }
 
-  @media (min-width: 768px) {
-    .nav-shell.nav-shell-compact {
-      min-height: var(--nav-shell-height, 0px);
-    }
-
-    .nav-root.nav-compact {
-      position: fixed;
-      top: 10px;
-      left: 0;
-      right: 0;
-      margin: 0 auto;
-      z-index: 70;
-      width: min(760px, calc(100vw - 24px));
-      border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.68);
-      backdrop-filter: blur(12px);
-      padding: 0.45rem 0.56rem;
-      gap: 0.6rem;
-      animation: nav-compact-in 180ms ease-out;
-    }
-
-    .nav-root.nav-compact .nav-logo {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-
-    .nav-root.nav-compact .nav-subitems {
+  @media (min-width: 1024px) {
+    .nav-mobile-toggle {
       display: none;
     }
 
-    html[data-theme='dark'] .nav-root.nav-compact {
-      background: rgba(2, 6, 23, 0.65);
+    .nav-menu {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    .nav-shell {
+      align-self: start;
+      position: sticky;
+      top: 3rem;
+      height: calc(100vh - 6rem);
+    }
+
+    .nav-primary {
+      margin-top: 4.5rem;
+    }
+
+    .nav-root {
+      min-height: 100%;
+    }
+
+    .nav-secondary {
+      margin-top: auto;
     }
   }
 
-  @keyframes nav-compact-in {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
+  @keyframes nav-reveal-in {
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .nav-root.nav-animate-in .nav-reveal-item {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
 </style>

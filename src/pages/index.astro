@@ -53,28 +53,30 @@ if (contentfulPhotos.length === 0) {
 ---
 
 <Layout title="hnrik.com" description="Hobby photography & other stuff by Henrik Löthman">
-  <main class="mx-auto max-w-7xl px-6 pb-20 pt-17">
-    <Nav activeTab="photography" />
+  <main class="w-full p-4 sm:p-10 lg:p-12">
+    <div class="lg:grid lg:grid-cols-[minmax(180px,16%)_minmax(0,1fr)] lg:gap-x-12">
+      <Nav activeTab="photography" />
 
-    <section class="pt-12">
-      <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
-        {
-          masonryItems.map((item) => (
-            <MasonryImage
-              src={item.src}
-              alt={item.alt}
-              title={item.title}
-              aspect={item.aspect}
-              width={item.width}
-              height={item.height}
-              bgClass={item.bgClass}
-              href={`/photo/${encodeURIComponent(item.id)}`}
-              className="mb-4 break-inside-avoid"
-            />
-          ))
-        }
-      </div>
-    </section>
+      <section class="pt-4 sm:pt-8 lg:pt-0">
+        <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
+          {
+            masonryItems.map((item) => (
+              <MasonryImage
+                src={item.src}
+                alt={item.alt}
+                title={item.title}
+                aspect={item.aspect}
+                width={item.width}
+                height={item.height}
+                bgClass={item.bgClass}
+                href={`/photo/${encodeURIComponent(item.id)}`}
+                className="mb-4 break-inside-avoid"
+              />
+            ))
+          }
+        </div>
+      </section>
+    </div>
     <aside id="index-toast" class="index-toast" role="status" aria-live="polite">
       <button id="index-toast-dismiss" type="button" class="index-toast__dismiss" aria-label="Dismiss keyboard navigation hint">×</button>
       <p class="index-toast__title">Keyboard navigation</p>
