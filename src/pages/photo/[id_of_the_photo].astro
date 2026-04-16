@@ -109,17 +109,18 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         />
       </div>
 
-      <section id="photo-page-section" class="pt-10 lg:pt-0">
+      <section id="photo-page-section" class="pt-6 lg:pt-0">
         <div id="photo-media-column" class={mediaContentColumnClass}>
-        <div id="photo-media-container" class:list={['group/media relative mt-4 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
+        {exposureLine ? <p class="text-sm text-stone-600 md:hidden">{exposureLine}</p> : null}
+        <div id="photo-media-container" data-aspect-ratio={selectedPhoto ? selectedPhoto.width / selectedPhoto.height : undefined} class:list={['group/media relative mt-4 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
         <div id="photo-media-controls" class="absolute top-4 right-4 z-40 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
           {
             leftLoopId && rightLoopId ? (
               <>
-                <a id="photo-nav-left" href={`/photo/${encodeURIComponent(leftLoopId)}`} aria-label="Previous photo" class="group cursor-pointer transition-opacity hover:opacity-70">
+                <a id="photo-nav-left" data-photo-prev href={`/photo/${encodeURIComponent(leftLoopId)}`} aria-label="Previous photo" class="group cursor-pointer transition-opacity hover:opacity-70">
                   <span class="icon-mask control-overlay-muted-icon block h-3 w-3 transition-colors group-hover:bg-black" style={`--icon-url: url('${caretLeft.src}');`}></span>
                 </a>
-                <a id="photo-nav-right" href={`/photo/${encodeURIComponent(rightLoopId)}`} aria-label="Next photo" class="group cursor-pointer transition-opacity hover:opacity-70">
+                <a id="photo-nav-right" data-photo-next href={`/photo/${encodeURIComponent(rightLoopId)}`} aria-label="Next photo" class="group cursor-pointer transition-opacity hover:opacity-70">
                   <span class="icon-mask control-overlay-muted-icon block h-3 w-3 transition-colors group-hover:bg-black" style={`--icon-url: url('${caretRight.src}');`}></span>
                 </a>
               </>
@@ -191,7 +192,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
               </>
             ) : (
               <div class="photo-map-empty-state absolute inset-0 z-20 flex items-center justify-center px-6 text-center text-sm text-slate-500">
-                <span>Dang! No location avalable for</span> <span class="ml-2 text-black">"{title}"</span>
+                <span>Dang! No location available for</span> <span class="ml-2 text-black">"{title}"</span>
               </div>
             )
           }
@@ -199,10 +200,10 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       </div>
 
         <div id="photo-meta">
-          {exposureLine ? <p class="mt-6 text-base text-stone-600">{exposureLine}</p> : null}
+          {exposureLine ? <p class="mt-6 hidden text-base text-stone-600 md:block">{exposureLine}</p> : null}
           {
             description ? (
-              <div class="mt-6 flex max-w-3xl items-center gap-3">
+              <div class="mt-6 flex max-w-3xl items-start gap-3 sm:items-center">
                 <img
                   src={henksMarker.src}
                   alt=""
@@ -214,6 +215,73 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             ) : null
           }
         </div>
+        <div id="photo-map-mobile" class="mt-7 overflow-hidden rounded-sm bg-white md:hidden">
+          {
+            hasInteractiveMap ? (
+              <div
+                id="photo-map-mobile-layer"
+                class="relative h-[260px] w-full bg-white"
+                data-map-mode={mapMode}
+                data-lat={locationLat ?? ''}
+                data-lng={locationLon ?? ''}
+                data-target-lat={targetLocationLat ?? ''}
+                data-target-lng={targetLocationLon ?? ''}
+                data-google-api-key={googleMapsApiKey}
+                data-henks-icon={henksMarker.src}
+                data-target-icon={cameraIcon.src}
+              >
+                <div id="photo-map-mobile-canvas" class="h-full w-full"></div>
+              </div>
+            ) : hasMapMedia ? (
+              <div class="relative h-[260px] w-full">
+                <iframe
+                  src={mapEmbedUrl ?? undefined}
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                  title={location ? `Map for ${location}` : 'Map'}
+                  class="map-frame h-full w-full border-0"
+                ></iframe>
+                <img
+                  src={henksMarker.src}
+                  alt=""
+                  aria-hidden="true"
+                  class="pointer-events-none absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/80 object-cover shadow-sm"
+                  style="width: 30px; height: 30px;"
+                />
+              </div>
+            ) : (
+              <div class="photo-map-empty-state flex min-h-[160px] items-center justify-center px-6 py-6 text-center text-sm text-slate-500">
+                <span>Dang! No location available for</span> <span class="ml-2 text-black">"{title}"</span>
+              </div>
+            )
+          }
+        </div>
+        {
+          leftLoopId && rightLoopId ? (
+            <nav class="photo-mobile-pagination mt-7 flex items-center justify-between gap-3 pt-4 md:hidden" aria-label="Photo pagination">
+              <a
+                id="photo-nav-left-mobile"
+                data-photo-prev
+                href={`/photo/${encodeURIComponent(leftLoopId)}`}
+                class="photo-mobile-pagination-link nav-focusable leading-none"
+                aria-label="Previous photo"
+              >
+                <span class="icon-mask block h-2.5 w-2.5 self-center bg-current" style={`--icon-url: url('${caretLeft.src}');`}></span>
+                <span>Previous</span>
+              </a>
+              <a
+                id="photo-nav-right-mobile"
+                data-photo-next
+                href={`/photo/${encodeURIComponent(rightLoopId)}`}
+                class="photo-mobile-pagination-link nav-focusable leading-none"
+                aria-label="Next photo"
+              >
+                <span>Next</span>
+                <span class="icon-mask block h-2.5 w-2.5 self-center bg-current" style={`--icon-url: url('${caretRight.src}');`}></span>
+              </a>
+            </nav>
+          ) : null
+        }
         </div>
       </section>
     </div>
@@ -234,9 +302,16 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     const locationIcon = document.getElementById('location-icon');
     const leftNavLink = document.getElementById('photo-nav-left');
     const rightNavLink = document.getElementById('photo-nav-right');
+    const mobileLeftNavLink = document.getElementById('photo-nav-left-mobile');
+    const mobileRightNavLink = document.getElementById('photo-nav-right-mobile');
+    const mobileMapLayer = document.getElementById('photo-map-mobile-layer');
+    const swipeSurface = document.getElementById('photo-media-container');
     const IMMERSIVE_QUERY_PARAM = 'immersive';
     const MEDIA_QUERY_PARAM = 'media';
     const SCROLL_POSITION_STORAGE_KEY = 'photo-scroll-position-y';
+    const MOBILE_MEDIA_QUERY = '(max-width: 767px)';
+    const SWIPE_TRIGGER_DISTANCE = 56;
+    const VERTICAL_SWIPE_TRIGGER_DISTANCE = 72;
     let currentMediaMode = 'photo';
 
     if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
@@ -620,6 +695,19 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         targetOverlay.setMap(map);
         updateMapDetailVisibility();
       }
+
+      return {
+        provider: 'google',
+        resize: () => {
+          google.maps.event.trigger(map, 'resize');
+          if (hasTargetLocation) {
+            map.setCenter(targetsCenter);
+          } else {
+            map.setCenter(center);
+          }
+          updateMapDetailVisibility();
+        },
+      };
     };
 
     const initLeafletMap = async ({ lat, lng, targetLat, targetLng, canvas, henksIcon, targetIcon }) => {
@@ -721,10 +809,26 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       setTimeout(() => {
         map.invalidateSize();
       }, 0);
+
+      return {
+        provider: 'leaflet',
+        resize: () => {
+          map.invalidateSize();
+          if (hasTargetLocation) {
+            map.panTo(targetsCenter, { animate: false });
+          } else {
+            map.panTo(center, { animate: false });
+          }
+          updateMapDetailVisibility();
+        },
+      };
     };
 
-    const initInteractiveMap = async () => {
-      if (!mapLayer || mapLayer.dataset.mapMode !== 'interactive' || mapLayer.dataset.initialized === 'true') return;
+    const initInteractiveMap = async (layer = mapLayer, canvasId = 'photo-media-map-canvas') => {
+      if (!layer || layer.dataset.mapMode !== 'interactive') return null;
+      if (layer.dataset.initialized === 'true' && layer.__mapController) {
+        return layer.__mapController;
+      }
 
       const toFiniteCoordinate = (value) => {
         if (value === undefined || value === null || value === '') return null;
@@ -732,33 +836,46 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         return Number.isFinite(parsed) ? parsed : null;
       };
 
-      const lat = toFiniteCoordinate(mapLayer.dataset.lat);
-      const lng = toFiniteCoordinate(mapLayer.dataset.lng);
-      const targetLat = toFiniteCoordinate(mapLayer.dataset.targetLat);
-      const targetLng = toFiniteCoordinate(mapLayer.dataset.targetLng);
-      const googleApiKey = mapLayer.dataset.googleApiKey || '';
-      const henksIcon = mapLayer.dataset.henksIcon;
-      const targetIcon = mapLayer.dataset.targetIcon;
-      const canvas = document.getElementById('photo-media-map-canvas');
+      const lat = toFiniteCoordinate(layer.dataset.lat);
+      const lng = toFiniteCoordinate(layer.dataset.lng);
+      const targetLat = toFiniteCoordinate(layer.dataset.targetLat);
+      const targetLng = toFiniteCoordinate(layer.dataset.targetLng);
+      const googleApiKey = layer.dataset.googleApiKey || '';
+      const henksIcon = layer.dataset.henksIcon;
+      const targetIcon = layer.dataset.targetIcon;
+      const canvas = document.getElementById(canvasId);
 
       if (!Number.isFinite(lat) || !Number.isFinite(lng) || !canvas || !henksIcon || !targetIcon) return;
       const mapConfig = { lat, lng, targetLat, targetLng, henksIcon, targetIcon, canvas };
       try {
+        let mapController = null;
         if (googleApiKey) {
-          await initGoogleMap({ ...mapConfig, apiKey: googleApiKey });
+          mapController = await initGoogleMap({ ...mapConfig, apiKey: googleApiKey });
         } else {
           console.warn('[photo-map] GOOGLE_MAPS_API_KEY is missing. Falling back to Leaflet.');
-          await initLeafletMap(mapConfig);
+          mapController = await initLeafletMap(mapConfig);
         }
-        mapLayer.dataset.initialized = 'true';
+        layer.__mapController = mapController;
+        layer.dataset.initialized = 'true';
+        return mapController;
       } catch (error) {
         if (googleApiKey) {
           console.warn('[photo-map] Google Maps failed to initialize. Falling back to Leaflet.', error);
-          await initLeafletMap(mapConfig);
-          mapLayer.dataset.initialized = 'true';
+          const mapController = await initLeafletMap(mapConfig);
+          layer.__mapController = mapController;
+          layer.dataset.initialized = 'true';
+          return mapController;
         } else {
           throw error;
         }
+      }
+    };
+
+    const refreshInteractiveMapLayout = (layer = mapLayer) => {
+      if (!layer) return;
+      const mapController = layer.__mapController;
+      if (mapController && typeof mapController.resize === 'function') {
+        mapController.resize();
       }
     };
 
@@ -771,7 +888,8 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       if (persistUrl) {
         setMediaUrlState('map');
       }
-      await initInteractiveMap();
+      await initInteractiveMap(mapLayer, 'photo-media-map-canvas');
+      refreshInteractiveMapLayout(mapLayer);
     };
 
     const syncMetaWidthToMedia = () => {
@@ -793,6 +911,10 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         mediaContainer.style.removeProperty('--media-fit-height');
         return;
       }
+      if (!window.matchMedia('(min-width: 768px)').matches) {
+        mediaContainer.style.removeProperty('--media-fit-height');
+        return;
+      }
 
       const topOffset = mediaContainer.getBoundingClientRect().top;
       const viewportHeight = window.innerHeight;
@@ -801,26 +923,54 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       const metaSpacing = hasMetaContent ? 28 : 0;
       const footerBuffer = window.matchMedia('(min-width: 1024px)').matches ? 34 : 22;
       const availableHeight = Math.floor(viewportHeight - topOffset - metaHeight - metaSpacing - footerBuffer);
+      const aspectRatio = Number(mediaContainer.dataset.aspectRatio);
+      const columnWidth = Math.floor(
+        mediaContainer.parentElement?.getBoundingClientRect().width ?? mediaContainer.getBoundingClientRect().width,
+      );
+      const maxHeightByWidth =
+        Number.isFinite(aspectRatio) && aspectRatio > 0 && columnWidth > 0 ? Math.floor(columnWidth / aspectRatio) : availableHeight;
+      const fittedHeight = Math.min(availableHeight, maxHeightByWidth);
 
-      if (availableHeight > 220) {
-        mediaContainer.style.setProperty('--media-fit-height', `${availableHeight}px`);
+      if (fittedHeight > 220) {
+        mediaContainer.style.setProperty('--media-fit-height', `${fittedHeight}px`);
       } else {
         mediaContainer.style.removeProperty('--media-fit-height');
       }
+    };
+
+    const getPrevNavLink = () => {
+      if (leftNavLink instanceof HTMLAnchorElement) return leftNavLink;
+      if (mobileLeftNavLink instanceof HTMLAnchorElement) return mobileLeftNavLink;
+      return null;
+    };
+
+    const getNextNavLink = () => {
+      if (rightNavLink instanceof HTMLAnchorElement) return rightNavLink;
+      if (mobileRightNavLink instanceof HTMLAnchorElement) return mobileRightNavLink;
+      return null;
+    };
+
+    const handleNavClick = (event, link) => {
+      event.preventDefault();
+      navigateToPhotoLink(link);
     };
 
     showPhotoButton.addEventListener('click', showPhoto);
     showMapButton?.addEventListener('click', () => {
       void showMap();
     });
-    leftNavLink?.addEventListener('click', (event) => {
-      event.preventDefault();
-      navigateToPhotoLink(leftNavLink);
-    });
-    rightNavLink?.addEventListener('click', (event) => {
-      event.preventDefault();
-      navigateToPhotoLink(rightNavLink);
-    });
+    if (leftNavLink instanceof HTMLAnchorElement) {
+      leftNavLink.addEventListener('click', (event) => handleNavClick(event, leftNavLink));
+    }
+    if (rightNavLink instanceof HTMLAnchorElement) {
+      rightNavLink.addEventListener('click', (event) => handleNavClick(event, rightNavLink));
+    }
+    if (mobileLeftNavLink instanceof HTMLAnchorElement) {
+      mobileLeftNavLink.addEventListener('click', (event) => handleNavClick(event, mobileLeftNavLink));
+    }
+    if (mobileRightNavLink instanceof HTMLAnchorElement) {
+      mobileRightNavLink.addEventListener('click', (event) => handleNavClick(event, mobileRightNavLink));
+    }
 
     document.addEventListener('keydown', (event) => {
       if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -850,20 +1000,30 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         } else {
           window.location.href = '/';
         }
-      } else if (event.key === 'ArrowLeft' && leftNavLink instanceof HTMLAnchorElement) {
+      } else if (event.key === 'ArrowLeft' && getPrevNavLink() instanceof HTMLAnchorElement) {
+        const prevLink = getPrevNavLink();
         event.preventDefault();
-        navigateToPhotoLink(leftNavLink);
-      } else if (event.key === 'ArrowRight' && rightNavLink instanceof HTMLAnchorElement) {
+        if (prevLink instanceof HTMLAnchorElement) {
+          navigateToPhotoLink(prevLink);
+        }
+      } else if (event.key === 'ArrowRight' && getNextNavLink() instanceof HTMLAnchorElement) {
+        const nextLink = getNextNavLink();
         event.preventDefault();
-        navigateToPhotoLink(rightNavLink);
+        if (nextLink instanceof HTMLAnchorElement) {
+          navigateToPhotoLink(nextLink);
+        }
       }
     });
 
     const initialSearchParams = new URLSearchParams(window.location.search);
-    if (initialSearchParams.get(MEDIA_QUERY_PARAM) === 'map' && mapLayer) {
+    const isMobileView = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+    if (!isMobileView && initialSearchParams.get(MEDIA_QUERY_PARAM) === 'map' && mapLayer) {
       void showMap({ persistUrl: false });
     } else {
       showPhoto({ persistUrl: false });
+    }
+    if (isMobileView && mobileMapLayer) {
+      void initInteractiveMap(mobileMapLayer, 'photo-map-mobile-canvas');
     }
 
     if (initialSearchParams.get(IMMERSIVE_QUERY_PARAM) === '1') {
@@ -887,12 +1047,89 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       }
     }
 
-    syncMetaWidthToMedia();
-    syncMediaHeightToViewport();
-    window.addEventListener('resize', () => {
+    const syncDesktopLayout = () => {
       syncMetaWidthToMedia();
       syncMediaHeightToViewport();
-    });
+      refreshInteractiveMapLayout(mapLayer);
+      refreshInteractiveMapLayout(mobileMapLayer);
+    };
+
+    let resizeRafId = 0;
+    const scheduleLayoutSync = () => {
+      if (resizeRafId) {
+        cancelAnimationFrame(resizeRafId);
+      }
+      resizeRafId = requestAnimationFrame(() => {
+        resizeRafId = 0;
+        syncDesktopLayout();
+      });
+    };
+
+    syncDesktopLayout();
+    window.addEventListener('resize', scheduleLayoutSync);
+
+    if (typeof ResizeObserver !== 'undefined' && mediaContainer) {
+      const layoutObserver = new ResizeObserver(() => {
+        scheduleLayoutSync();
+      });
+      layoutObserver.observe(mediaContainer);
+    }
+
+    if (swipeSurface) {
+      let pointerStartX = 0;
+      let pointerStartY = 0;
+      let swipeInProgress = false;
+
+      swipeSurface.addEventListener(
+        'touchstart',
+        (event) => {
+          if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+          if (event.touches.length !== 1) return;
+          const touch = event.touches[0];
+          pointerStartX = touch.clientX;
+          pointerStartY = touch.clientY;
+          swipeInProgress = true;
+        },
+        { passive: true },
+      );
+
+      swipeSurface.addEventListener(
+        'touchend',
+        (event) => {
+          if (!swipeInProgress || !window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+          const touch = event.changedTouches[0];
+          if (!touch) return;
+          const deltaX = touch.clientX - pointerStartX;
+          const deltaY = touch.clientY - pointerStartY;
+          swipeInProgress = false;
+
+          const isVerticalSwipe =
+            Math.abs(deltaY) >= VERTICAL_SWIPE_TRIGGER_DISTANCE && Math.abs(deltaY) > Math.abs(deltaX) * 1.25;
+          if (isVerticalSwipe) {
+            if (deltaY < 0) {
+              enterImmersivePhotoMode();
+            } else if (document.documentElement.classList.contains('photo-immersive')) {
+              exitImmersivePhotoMode();
+            } else {
+              window.location.href = '/';
+            }
+            return;
+          }
+
+          if (Math.abs(deltaX) < SWIPE_TRIGGER_DISTANCE || Math.abs(deltaY) > Math.abs(deltaX) * 0.8) {
+            return;
+          }
+          if (deltaX > 0) {
+            const prevLink = getPrevNavLink();
+            if (prevLink instanceof HTMLAnchorElement) navigateToPhotoLink(prevLink);
+          } else {
+            const nextLink = getNextNavLink();
+            if (nextLink instanceof HTMLAnchorElement) navigateToPhotoLink(nextLink);
+          }
+        },
+        { passive: true },
+      );
+    }
   })();
 </script>
 
@@ -1007,6 +1244,23 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     height: var(--media-fit-height, auto);
   }
 
+  .photo-mobile-pagination-link {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.15rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+    transition: opacity 120ms ease;
+  }
+
+  .photo-mobile-pagination-link:hover {
+    opacity: 0.65;
+  }
+
   html.photo-immersive body {
     overflow: hidden;
   }
@@ -1059,21 +1313,23 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
   }
 
   @media (max-width: 767px) {
-    #photo-page-main {
-      padding-left: 0.5rem !important;
-      padding-right: 0.5rem !important;
-    }
-
     #photo-media-container {
       width: 100% !important;
-      height: min(88svh, var(--media-fit-height, 88svh)) !important;
-      aspect-ratio: auto !important;
-      margin-top: 0.75rem !important;
+      height: auto !important;
+      margin-top: 0.5rem !important;
     }
 
     #photo-media-image .photo-main-image {
-      object-fit: contain !important;
-      object-position: center;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    #photo-media-controls {
+      display: none !important;
+    }
+
+    :global(html[data-theme='dark']) .photo-mobile-pagination-link {
+      color: #94a3b8;
     }
   }
 
