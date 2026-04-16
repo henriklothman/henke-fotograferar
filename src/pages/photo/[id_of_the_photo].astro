@@ -110,7 +110,7 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
         />
       </div>
 
-      <section id="photo-page-section" class="pt-6 lg:pt-0">
+      <section id="photo-page-section" class="pt-6 lg:pt-0 photo-page-section--desktop-loading">
         <div id="photo-media-column" class={mediaContentColumnClass}>
         <div id="photo-media-container" data-aspect-ratio={selectedPhoto ? selectedPhoto.width / selectedPhoto.height : undefined} class:list={['group/media relative mt-4 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
         <div id="photo-media-controls" class="absolute top-4 right-4 z-40 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
@@ -288,11 +288,24 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
   </main>
 </Layout>
 
+<noscript>
+  <style>
+    @media (min-width: 1024px) {
+      #photo-page-section.photo-page-section--desktop-loading #photo-media-column {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+      }
+    }
+  </style>
+</noscript>
+
 <script is:inline>
   (() => {
     const TARGET_LINE_PIXEL_LENGTH = 200;
     const MARKER_OVERLAP_DISTANCE_PX = 34;
     const photoLayer = document.getElementById('photo-media-image');
+    const photoPageSection = document.getElementById('photo-page-section');
     const mapLayer = document.getElementById('photo-media-map');
     const mediaContainer = document.getElementById('photo-media-container');
     const photoMeta = document.getElementById('photo-meta');
@@ -317,8 +330,25 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
     if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
 
     const mainImage = photoLayer.querySelector('.photo-main-image');
+    let isMainImageReady = false;
+    let isInitialDesktopLayoutReady = false;
+
+    const revealDesktopPhotoContent = () => {
+      if (!photoPageSection) return;
+      if (!window.matchMedia('(min-width: 1024px)').matches) {
+        photoPageSection.classList.remove('photo-page-section--desktop-loading');
+        photoPageSection.classList.add('photo-page-section--desktop-ready');
+        return;
+      }
+      if (!isMainImageReady || !isInitialDesktopLayoutReady) return;
+      photoPageSection.classList.remove('photo-page-section--desktop-loading');
+      photoPageSection.classList.add('photo-page-section--desktop-ready');
+    };
+
     const setMediaContainerReady = () => {
+      isMainImageReady = true;
       mediaContainer?.classList.add('photo-media-container--image-ready');
+      revealDesktopPhotoContent();
     };
 
     if (mainImage instanceof HTMLImageElement) {
@@ -326,6 +356,7 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
         setMediaContainerReady();
       } else {
         mainImage.addEventListener('load', setMediaContainerReady, { once: true });
+        mainImage.addEventListener('error', setMediaContainerReady, { once: true });
       }
     }
 
@@ -1067,6 +1098,10 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
     };
 
     syncDesktopLayout();
+    requestAnimationFrame(() => {
+      isInitialDesktopLayoutReady = true;
+      revealDesktopPhotoContent();
+    });
     window.addEventListener('resize', scheduleLayoutSync);
 
     if (typeof ResizeObserver !== 'undefined' && mediaContainer) {
@@ -1230,6 +1265,20 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
 
   #photo-media-container {
     height: var(--media-fit-height, auto);
+  }
+
+  @media (min-width: 1024px) {
+    #photo-page-section.photo-page-section--desktop-loading #photo-media-column {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #photo-page-section.photo-page-section--desktop-ready #photo-media-column {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 180ms ease;
+    }
   }
 
   .photo-mobile-pagination-link {
