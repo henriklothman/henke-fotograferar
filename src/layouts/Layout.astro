@@ -7,17 +7,19 @@ interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
+  htmlClass?: string;
 }
 
 const {
   title = 'hnrik.com',
   description = 'Photography portfolio and selected work.',
-  ogImage = "https://hnrik.com/hnrk_1200x630.jpg"
+  ogImage = "https://hnrik.com/hnrk_1200x630.jpg",
+  htmlClass = '',
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class={htmlClass}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />

@@ -95,9 +95,10 @@ const exposurePrimary = focalLengthText
   : apertureText;
 const exposureDetails = [exposurePrimary, shutterSpeedText, isoText].filter(Boolean).join(', ');
 const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
+const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.searchParams.get('immersive') === '1';
 ---
 
-<Layout title={`${title} | hnrik.com`} description={description}>
+<Layout title={`${title} | hnrik.com`} description={description} htmlClass={isInitialFull ? 'photo-full' : ''}>
   <main id="photo-page-main" class="w-full p-4 sm:p-10 lg:p-12">
     <div class="lg:grid lg:grid-cols-[minmax(180px,16%)_minmax(0,1fr)] lg:gap-x-12">
       <div id="photo-page-nav">
@@ -111,7 +112,6 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
       <section id="photo-page-section" class="pt-6 lg:pt-0">
         <div id="photo-media-column" class={mediaContentColumnClass}>
-        {exposureLine ? <p class="text-sm text-stone-600 md:hidden">{exposureLine}</p> : null}
         <div id="photo-media-container" data-aspect-ratio={selectedPhoto ? selectedPhoto.width / selectedPhoto.height : undefined} class:list={['group/media relative mt-4 overflow-hidden bg-stone-200', mediaContainerClass]} style={mediaContainerStyle}>
         <div id="photo-media-controls" class="absolute top-4 right-4 z-40 flex items-center gap-3 rounded-full bg-white px-4 py-2 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover/media:pointer-events-auto md:group-hover/media:opacity-100 md:group-focus-within/media:pointer-events-auto md:group-focus-within/media:opacity-100">
           {
@@ -197,10 +197,10 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             )
           }
         </div>
-      </div>
+        </div>
 
         <div id="photo-meta">
-          {exposureLine ? <p class="mt-6 hidden text-base text-stone-600 md:block">{exposureLine}</p> : null}
+          {exposureLine ? <p class="mt-6 text-sm text-stone-600 md:text-base">{exposureLine}</p> : null}
           {
             description ? (
               <div class="mt-6 flex max-w-3xl items-start gap-3 sm:items-center">
@@ -220,7 +220,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
             hasInteractiveMap ? (
               <div
                 id="photo-map-mobile-layer"
-                class="relative h-[260px] w-full bg-white"
+                class="relative h-65 w-full bg-white"
                 data-map-mode={mapMode}
                 data-lat={locationLat ?? ''}
                 data-lng={locationLon ?? ''}
@@ -233,7 +233,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
                 <div id="photo-map-mobile-canvas" class="h-full w-full"></div>
               </div>
             ) : hasMapMedia ? (
-              <div class="relative h-[260px] w-full">
+              <div class="relative h-65 w-full">
                 <iframe
                   src={mapEmbedUrl ?? undefined}
                   loading="lazy"
@@ -250,7 +250,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
                 />
               </div>
             ) : (
-              <div class="photo-map-empty-state flex min-h-[160px] items-center justify-center px-6 py-6 text-center text-sm text-slate-500">
+              <div class="photo-map-empty-state flex min-h-40 items-center justify-center px-6 py-6 text-center text-sm text-slate-500">
                 <span>Dang! No location available for</span> <span class="ml-2 text-black">"{title}"</span>
               </div>
             )
@@ -306,12 +306,12 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     const mobileRightNavLink = document.getElementById('photo-nav-right-mobile');
     const mobileMapLayer = document.getElementById('photo-map-mobile-layer');
     const swipeSurface = document.getElementById('photo-media-container');
-    const IMMERSIVE_QUERY_PARAM = 'immersive';
+    const FULL_QUERY_PARAM = 'full';
+    const LEGACY_IMMERSIVE_QUERY_PARAM = 'immersive';
     const MEDIA_QUERY_PARAM = 'media';
     const SCROLL_POSITION_STORAGE_KEY = 'photo-scroll-position-y';
     const MOBILE_MEDIA_QUERY = '(max-width: 767px)';
     const SWIPE_TRIGGER_DISTANCE = 56;
-    const VERTICAL_SWIPE_TRIGGER_DISTANCE = 72;
     let currentMediaMode = 'photo';
 
     if (!photoLayer || !showPhotoButton || !cameraIcon || !locationIcon) return;
@@ -363,15 +363,16 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       }
     };
 
-    const isImmersiveMode = () => document.documentElement.classList.contains('photo-immersive');
+    const isFullMode = () => document.documentElement.classList.contains('photo-full');
 
-    const setImmersiveUrlState = (enabled) => {
+    const setFullUrlState = (enabled) => {
       const url = new URL(window.location.href);
       if (enabled) {
-        url.searchParams.set(IMMERSIVE_QUERY_PARAM, '1');
+        url.searchParams.set(FULL_QUERY_PARAM, '1');
       } else {
-        url.searchParams.delete(IMMERSIVE_QUERY_PARAM);
+        url.searchParams.delete(FULL_QUERY_PARAM);
       }
+      url.searchParams.delete(LEGACY_IMMERSIVE_QUERY_PARAM);
       window.history.replaceState({}, '', url);
     };
 
@@ -383,10 +384,12 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
         // Ignore storage failures.
       }
       const url = new URL(link.href, window.location.origin);
-      if (isImmersiveMode()) {
-        url.searchParams.set(IMMERSIVE_QUERY_PARAM, '1');
+      if (isFullMode()) {
+        url.searchParams.set(FULL_QUERY_PARAM, '1');
+        url.searchParams.delete(LEGACY_IMMERSIVE_QUERY_PARAM);
       } else {
-        url.searchParams.delete(IMMERSIVE_QUERY_PARAM);
+        url.searchParams.delete(FULL_QUERY_PARAM);
+        url.searchParams.delete(LEGACY_IMMERSIVE_QUERY_PARAM);
       }
       if (currentMediaMode === 'map') {
         url.searchParams.set(MEDIA_QUERY_PARAM, 'map');
@@ -396,16 +399,16 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       window.location.href = url.toString();
     };
 
-    const enterImmersivePhotoMode = () => {
+    const enterFullPhotoMode = () => {
       showPhoto();
-      document.documentElement.classList.add('photo-immersive');
-      setImmersiveUrlState(true);
+      document.documentElement.classList.add('photo-full');
+      setFullUrlState(true);
       window.scrollTo({ top: 0, behavior: 'auto' });
     };
 
-    const exitImmersivePhotoMode = () => {
-      document.documentElement.classList.remove('photo-immersive');
-      setImmersiveUrlState(false);
+    const exitFullPhotoMode = () => {
+      document.documentElement.classList.remove('photo-full');
+      setFullUrlState(false);
     };
 
     const showTemporaryZoomLabel = (zoomLevel) => {
@@ -907,7 +910,7 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
     const syncMediaHeightToViewport = () => {
       if (!mediaContainer) return;
-      if (isImmersiveMode()) {
+      if (isFullMode()) {
         mediaContainer.style.removeProperty('--media-fit-height');
         return;
       }
@@ -988,15 +991,15 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
 
       if (event.key === 'Escape') {
         event.preventDefault();
-        exitImmersivePhotoMode();
+        exitFullPhotoMode();
         window.location.href = '/';
       } else if (event.key === 'ArrowUp') {
         event.preventDefault();
-        enterImmersivePhotoMode();
+        enterFullPhotoMode();
       } else if (event.key === 'ArrowDown') {
         event.preventDefault();
-        if (document.documentElement.classList.contains('photo-immersive')) {
-          exitImmersivePhotoMode();
+        if (document.documentElement.classList.contains('photo-full')) {
+          exitFullPhotoMode();
         } else {
           window.location.href = '/';
         }
@@ -1026,11 +1029,11 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
       void initInteractiveMap(mobileMapLayer, 'photo-map-mobile-canvas');
     }
 
-    if (initialSearchParams.get(IMMERSIVE_QUERY_PARAM) === '1') {
-      enterImmersivePhotoMode();
+    if (initialSearchParams.get(FULL_QUERY_PARAM) === '1' || initialSearchParams.get(LEGACY_IMMERSIVE_QUERY_PARAM) === '1') {
+      enterFullPhotoMode();
     }
 
-    if (initialSearchParams.get(IMMERSIVE_QUERY_PARAM) !== '1') {
+    if (initialSearchParams.get(FULL_QUERY_PARAM) !== '1' && initialSearchParams.get(LEGACY_IMMERSIVE_QUERY_PARAM) !== '1') {
       try {
         const storedScrollY = sessionStorage.getItem(SCROLL_POSITION_STORAGE_KEY);
         if (storedScrollY !== null) {
@@ -1102,19 +1105,6 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
           const deltaX = touch.clientX - pointerStartX;
           const deltaY = touch.clientY - pointerStartY;
           swipeInProgress = false;
-
-          const isVerticalSwipe =
-            Math.abs(deltaY) >= VERTICAL_SWIPE_TRIGGER_DISTANCE && Math.abs(deltaY) > Math.abs(deltaX) * 1.25;
-          if (isVerticalSwipe) {
-            if (deltaY < 0) {
-              enterImmersivePhotoMode();
-            } else if (document.documentElement.classList.contains('photo-immersive')) {
-              exitImmersivePhotoMode();
-            } else {
-              window.location.href = '/';
-            }
-            return;
-          }
 
           if (Math.abs(deltaX) < SWIPE_TRIGGER_DISTANCE || Math.abs(deltaY) > Math.abs(deltaX) * 0.8) {
             return;
@@ -1261,34 +1251,34 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     opacity: 0.65;
   }
 
-  html.photo-immersive body {
+  html.photo-full body {
     overflow: hidden;
   }
 
-  html.photo-immersive #photo-page-main {
+  html.photo-full #photo-page-main {
     max-width: none;
     padding: 0;
   }
 
-  html.photo-immersive #photo-page-section {
+  html.photo-full #photo-page-section {
     padding-top: 0;
   }
 
-  html.photo-immersive #photo-page-nav,
-  html.photo-immersive #photo-meta,
-  html.photo-immersive #photo-media-controls,
-  html.photo-immersive #photo-nav-left,
-  html.photo-immersive #photo-nav-right {
+  html.photo-full #photo-page-nav,
+  html.photo-full #photo-meta,
+  html.photo-full #photo-media-controls,
+  html.photo-full #photo-nav-left,
+  html.photo-full #photo-nav-right {
     display: none !important;
   }
 
-  html.photo-immersive #photo-media-column {
+  html.photo-full #photo-media-column {
     width: 100vw !important;
     max-width: none !important;
     margin: 0 !important;
   }
 
-  html.photo-immersive #photo-media-container {
+  html.photo-full #photo-media-container {
     margin-top: 0 !important;
     width: 100vw !important;
     max-width: none !important;
@@ -1297,17 +1287,17 @@ const exposureLine = exposureDetails ? `${title} → ${exposureDetails}` : null;
     background: transparent !important;
   }
 
-  html.photo-immersive #photo-media-image {
+  html.photo-full #photo-media-image {
     inset: 12px !important;
   }
 
   @media (min-width: 768px) {
-    html.photo-immersive #photo-media-image {
+    html.photo-full #photo-media-image {
       inset: 20px !important;
     }
   }
 
-  html.photo-immersive #photo-media-image .photo-main-image {
+  html.photo-full #photo-media-image .photo-main-image {
     object-fit: contain !important;
     background: transparent;
   }
