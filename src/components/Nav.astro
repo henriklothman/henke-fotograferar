@@ -26,7 +26,11 @@ const isAboutTab = activeTab === 'about';
 ---
 
 <div class={`nav-shell w-full ${className}`} data-name="NavShell">
-<nav class="nav-root relative flex w-full flex-col gap-5 py-1.5 lg:pt-12 lg:pb-3" data-name="Nav">
+<nav
+  class="nav-root relative flex w-full flex-col gap-5 py-1.5 lg:pt-12 lg:pb-3"
+  data-name="Nav"
+  data-nav-reveal-enabled={photoNav ? 'false' : 'true'}
+>
   <div class="nav-top flex items-center justify-between lg:block">
     <a href="/" aria-label="Go to Photography home" class="nav-logo nav-focusable nav-reveal-item relative block h-18 w-18 shrink-0 rounded-sm" data-nav-reveal>
       {
@@ -238,6 +242,10 @@ const isAboutTab = activeTab === 'about';
 
       navs.forEach((nav) => {
         if (!(nav instanceof HTMLElement)) return;
+        if (nav.dataset.navRevealEnabled === 'false') {
+          nav.classList.add('nav-reveal-done');
+          return;
+        }
         const revealItems = Array.from(nav.querySelectorAll('[data-nav-reveal]'));
         revealItems.forEach((item, index) => {
           if (item instanceof HTMLElement) {
