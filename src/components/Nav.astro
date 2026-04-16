@@ -55,6 +55,14 @@ const isAboutTab = activeTab === 'about';
   </div>
 
   <div class="nav-menu w-full" data-nav-menu>
+  <button
+    type="button"
+    class="nav-mobile-close nav-focusable lg:hidden"
+    data-nav-menu-close
+    aria-label="Close navigation menu"
+  >
+    <span aria-hidden="true" class="nav-mobile-close-glyph">&times;</span>
+  </button>
   <div class="nav-primary w-full">
     <a
       href="/"
@@ -62,6 +70,7 @@ const isAboutTab = activeTab === 'about';
       class="nav-main-link nav-focusable nav-reveal-item flex items-center gap-2.5 rounded-sm px-1 py-0.5"
       data-inactive={activeTab !== 'photography'}
       data-nav-reveal
+      data-nav-mobile-item
     >
       {
         photoNav && activeTab === 'photography' ? (
@@ -93,11 +102,12 @@ const isAboutTab = activeTab === 'about';
                   class={`nav-subitem-link nav-focusable nav-reveal-item relative flex items-center gap-3 rounded-sm py-1 pl-4 text-sm leading-snug transition-colors before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500 hover:text-black'}`}
                   data-inactive={!item.active}
                   data-nav-reveal
+                  data-nav-mobile-item
                 >
                   <span>{item.title}</span>
                 </a>
               ) : (
-                <p class={`nav-reveal-item relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500'}`} data-nav-reveal>
+                <p class={`nav-reveal-item relative flex items-center gap-3 py-1 pl-4 text-sm leading-snug before:absolute before:left-0 before:top-1/2 before:h-0 before:w-3 before:-translate-y-1/2 before:border-t before:border-black after:absolute after:left-0 after:top-0 after:border-l after:border-black ${connectorClass} ${item.active ? 'font-medium text-black' : 'text-slate-500'}`} data-nav-reveal data-nav-mobile-item>
                   <span>{item.title}</span>
                 </p>
               );
@@ -113,6 +123,7 @@ const isAboutTab = activeTab === 'about';
       class="nav-main-link nav-focusable nav-reveal-item mt-4 flex items-center gap-2.5 rounded-sm px-1 py-0.5"
       data-inactive={activeTab !== 'about'}
       data-nav-reveal
+      data-nav-mobile-item
     >
       <p class={`nav-main-label text-base leading-none whitespace-nowrap ${activeTab === 'about' ? 'font-medium text-black' : 'font-normal text-slate-500'}`}>About</p>
     </a>
@@ -125,6 +136,7 @@ const isAboutTab = activeTab === 'about';
       data-theme-toggle
       class="nav-secondary-link nav-focusable nav-reveal-item mt-3 flex cursor-pointer items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black"
       data-nav-reveal
+      data-nav-mobile-item
     >
       <span
         data-theme-icon
@@ -141,7 +153,7 @@ const isAboutTab = activeTab === 'about';
       target="_blank"
       rel="noreferrer noopener"
       aria-label="Instagram"
-      class="nav-secondary-link nav-focusable nav-reveal-item mt-3 flex items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black"
+      class="nav-secondary-link nav-focusable nav-reveal-item mt-3 hidden items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black lg:flex"
       data-nav-reveal
     >
       <span
@@ -157,7 +169,7 @@ const isAboutTab = activeTab === 'about';
       target="_blank"
       rel="noreferrer noopener"
       aria-label="LinkedIn"
-      class="nav-secondary-link nav-focusable nav-reveal-item mt-2 flex items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black"
+      class="nav-secondary-link nav-focusable nav-reveal-item mt-2 hidden items-center gap-2 rounded-sm px-1 py-0.5 text-sm text-slate-500 transition-colors hover:text-black lg:flex"
       data-nav-reveal
     >
       <span
@@ -168,7 +180,42 @@ const isAboutTab = activeTab === 'about';
       <span>LinkedIn</span>
     </a>
 
-    <p class="nav-reveal-item mt-4 hidden px-1 text-xs leading-relaxed text-slate-500 md:block" data-nav-reveal>
+    <p class="nav-reveal-item mt-4 hidden px-1 text-xs leading-relaxed text-slate-500 lg:block" data-nav-reveal>
+      Henrik Löthman is a Swedish product developer capturing quiet moments, light and structure.
+    </p>
+  </div>
+  <div class="nav-mobile-footer lg:hidden" data-nav-mobile-item>
+    <div class="nav-mobile-footer-links">
+      <a
+        href="https://www.instagram.com/henriklot/"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Instagram"
+        class="nav-mobile-footer-link nav-focusable"
+      >
+        <span
+          aria-hidden="true"
+          class="icon-mask block h-4 w-4 bg-current"
+          style={`--icon-url: url('${Instagram.src}');`}
+        ></span>
+        <span>Instagram</span>
+      </a>
+      <a
+        href="https://www.linkedin.com/in/henriklothman/"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="LinkedIn"
+        class="nav-mobile-footer-link nav-focusable"
+      >
+        <span
+          aria-hidden="true"
+          class="icon-mask block h-4 w-4 bg-current"
+          style={`--icon-url: url('${Linkedin.src}');`}
+        ></span>
+        <span>LinkedIn</span>
+      </a>
+    </div>
+    <p class="nav-mobile-footer-text">
       Henrik Löthman is a Swedish product developer capturing quiet moments, light and structure.
     </p>
   </div>
@@ -224,21 +271,40 @@ const isAboutTab = activeTab === 'about';
         if (!(nav instanceof HTMLElement)) return;
         const toggle = nav.querySelector('[data-nav-menu-toggle]');
         const menu = nav.querySelector('[data-nav-menu]');
+        const close = nav.querySelector('[data-nav-menu-close]');
         if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement)) return;
 
         const desktopMedia = window.matchMedia(DESKTOP_QUERY);
+        const mobileItems = Array.from(menu.querySelectorAll('[data-nav-mobile-item]'));
+        mobileItems.forEach((item, index) => {
+          if (item instanceof HTMLElement) {
+            item.style.setProperty('--nav-mobile-item-index', String(index));
+          }
+        });
+
         const setExpandedState = () => {
           if (desktopMedia.matches) {
             toggle.setAttribute('aria-expanded', 'true');
+            document.documentElement.classList.remove('nav-mobile-lock');
             return;
           }
-          toggle.setAttribute('aria-expanded', nav.classList.contains('nav-menu-open') ? 'true' : 'false');
+          const isOpen = nav.classList.contains('nav-menu-open');
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          document.documentElement.classList.toggle('nav-mobile-lock', isOpen);
         };
 
         toggle.addEventListener('click', () => {
           nav.classList.toggle('nav-menu-open');
           setExpandedState();
         });
+
+        if (close instanceof HTMLButtonElement) {
+          close.addEventListener('click', () => {
+            if (desktopMedia.matches) return;
+            nav.classList.remove('nav-menu-open');
+            setExpandedState();
+          });
+        }
 
         menu.querySelectorAll('a').forEach((link) => {
           link.addEventListener('click', () => {
@@ -280,8 +346,158 @@ const isAboutTab = activeTab === 'about';
     display: none;
   }
 
+  html.nav-mobile-lock,
+  html.nav-mobile-lock body {
+    overflow: hidden;
+  }
+
   .nav-root.nav-menu-open .nav-menu {
     display: block;
+  }
+
+  @media (max-width: 1023px) {
+    .nav-top {
+      position: relative;
+      z-index: 30;
+    }
+
+    .nav-mobile-toggle {
+      min-height: 2.8rem;
+      min-width: 2.8rem;
+      background: color-mix(in srgb, var(--theme-bg) 90%, transparent);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .nav-menu {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow-y: auto;
+      padding: 6.25rem 1.5rem 2rem;
+      background: var(--theme-bg);
+    }
+
+    .nav-root.nav-menu-open .nav-menu {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-mobile-close {
+      position: fixed;
+      right: 1rem;
+      top: 1rem;
+      z-index: 51;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.8rem;
+      min-width: 2.8rem;
+      border-radius: 0.125rem;
+      background: color-mix(in srgb, var(--theme-bg) 90%, transparent);
+      color: #64748b;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .nav-root.nav-menu-open .nav-mobile-close {
+      display: inline-flex;
+    }
+
+    .nav-mobile-close-glyph {
+      display: block;
+      font-size: 1.55rem;
+      line-height: 1;
+      font-weight: 300;
+    }
+
+    .nav-primary,
+    .nav-secondary {
+      max-width: 28rem;
+      margin: 0 auto;
+    }
+
+    .nav-secondary {
+      margin-top: 2rem;
+    }
+
+    .nav-mobile-footer {
+      width: 100%;
+      max-width: 28rem;
+      margin: auto auto 0;
+      padding: 1.2rem 0.25rem 0;
+    }
+
+    .nav-mobile-footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem 1.25rem;
+    }
+
+    .nav-mobile-footer-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      line-height: 1.2;
+      color: #64748b;
+      transition: color 180ms ease;
+    }
+
+    .nav-mobile-footer-link:hover {
+      color: #111827;
+    }
+
+    .nav-mobile-footer-text {
+      margin-top: 0.95rem;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      color: #64748b;
+    }
+
+    .nav-main-link {
+      padding-top: 0.375rem;
+      padding-bottom: 0.375rem;
+    }
+
+    .nav-main-label {
+      font-size: clamp(1.35rem, 6.8vw, 2.05rem);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .nav-subitems {
+      margin-top: 1.25rem;
+      margin-left: 0.35rem;
+    }
+
+    .nav-subitem-link,
+    .nav-subitems p {
+      font-size: clamp(1.15rem, 5.2vw, 1.5rem);
+      line-height: 1.25;
+      padding-top: 0.4rem;
+      padding-bottom: 0.4rem;
+    }
+
+    .nav-secondary-link {
+      margin-top: 0.9rem;
+      font-size: clamp(1.05rem, 4.8vw, 1.25rem);
+    }
+
+    .nav-secondary-link .icon-mask {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .nav-root.nav-menu-open [data-nav-mobile-item] {
+      opacity: 0;
+      transform: translateY(18px);
+      animation: nav-mobile-item-in 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation-delay: calc(var(--nav-mobile-item-index, 0) * 70ms + 80ms);
+    }
   }
 
   .nav-mobile-toggle {
@@ -359,7 +575,23 @@ const isAboutTab = activeTab === 'about';
     color: #e5e7eb;
   }
 
+  html[data-theme='dark'] .nav-mobile-footer-link {
+    color: #94a3b8;
+  }
+
+  html[data-theme='dark'] .nav-mobile-footer-link:hover {
+    color: #e5e7eb;
+  }
+
+  html[data-theme='dark'] .nav-mobile-footer-text {
+    color: #94a3b8;
+  }
+
   html[data-theme='dark'] .nav-mobile-toggle {
+    color: #94a3b8;
+  }
+
+  html[data-theme='dark'] .nav-mobile-close {
     color: #94a3b8;
   }
 
@@ -404,6 +636,10 @@ const isAboutTab = activeTab === 'about';
       display: none;
     }
 
+    .nav-mobile-close {
+      display: none !important;
+    }
+
     .nav-menu {
       display: flex;
       flex: 1;
@@ -437,8 +673,21 @@ const isAboutTab = activeTab === 'about';
     }
   }
 
+  @keyframes nav-mobile-item-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .nav-root.nav-animate-in .nav-reveal-item {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .nav-root.nav-menu-open [data-nav-mobile-item] {
       animation: none;
       opacity: 1;
       transform: none;
