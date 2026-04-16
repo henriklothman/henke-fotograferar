@@ -1040,9 +1040,7 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
           sessionStorage.removeItem(SCROLL_POSITION_STORAGE_KEY);
           const scrollY = Number(storedScrollY);
           if (Number.isFinite(scrollY) && scrollY > 0) {
-            requestAnimationFrame(() => {
-              window.scrollTo({ top: scrollY, behavior: 'auto' });
-            });
+            window.scrollTo({ top: scrollY, behavior: 'auto' });
           }
         }
       } catch {
