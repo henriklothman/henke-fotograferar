@@ -97,7 +97,7 @@ const isAboutTab = activeTab === 'about';
 
     {
       photoNav ? (
-        <div class="nav-subitems mt-3 ml-0.5">
+        <div class="nav-subitems mt-3">
           {
             subNavItems.map((item, index) => {
               const isLast = index === subNavItems.length - 1;
@@ -353,6 +353,10 @@ const isAboutTab = activeTab === 'about';
     transition: gap 180ms ease;
   }
 
+  .nav-subitems {
+    margin-left: 0.5625rem;
+  }
+
   .nav-menu {
     display: none;
   }
@@ -482,7 +486,7 @@ const isAboutTab = activeTab === 'about';
 
     .nav-subitems {
       margin-top: 1.25rem;
-      margin-left: 0.35rem;
+      margin-left: 0.5625rem;
     }
 
     .nav-subitem-link,

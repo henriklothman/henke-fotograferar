@@ -100,7 +100,7 @@ const isInitialFull = Astro.url.searchParams.get('full') === '1' || Astro.url.se
 
 <Layout title={`${title} | hnrik.com`} description={description} htmlClass={isInitialFull ? 'photo-full' : ''}>
   <main id="photo-page-main" class="w-full p-4 sm:p-10 lg:p-12">
-    <div class="lg:grid lg:grid-cols-[minmax(180px,16%)_minmax(0,1fr)] lg:gap-x-12">
+    <div class="lg:grid desktop-layout-grid lg:grid-cols-[minmax(180px,16%)_minmax(0,1fr)] lg:gap-x-12">
       <div id="photo-page-nav">
         <Nav
           activeTab="photography"

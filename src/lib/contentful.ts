@@ -5,6 +5,7 @@ export interface PhotoItem {
   imageUrl: string;
   width: number;
   height: number;
+  tags?: string[];
   description?: string;
   location?: string;
   locationLat?: number;
@@ -36,6 +37,9 @@ interface ContentfulAsset {
 interface ContentfulEntry {
   sys?: {
     id?: string;
+  };
+  metadata?: {
+    tags?: ContentfulLink[];
   };
   fields?: Record<string, unknown>;
 }
@@ -151,6 +155,26 @@ function toStringValue(value: unknown): string | undefined {
     }
   }
   return undefined;
+}
+
+function toStringArray(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    const parts = value
+      .map((item) => toStringValue(item))
+      .filter((item): item is string => typeof item === 'string');
+    return parts.length > 0 ? parts : undefined;
+  }
+
+  const single = toStringValue(value);
+  return single ? [single] : undefined;
+}
+
+function readMetadataTagIds(entry: ContentfulEntry): string[] | undefined {
+  const tagIds = (entry.metadata?.tags ?? [])
+    .map((tag) => (typeof tag?.sys?.id === 'string' ? tag.sys.id : null))
+    .filter((id): id is string => typeof id === 'string' && id.trim().length > 0);
+
+  return tagIds.length > 0 ? tagIds : undefined;
 }
 
 function toLocationCoordinates(value: unknown): { lat: number; lon: number } | undefined {
@@ -282,6 +306,9 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
       ]),
     );
     const iso = toStringValue(firstDefinedValue(fields, locale, ['iso', 'ISO']));
+    const fieldTags = toStringArray(firstDefinedValue(fields, locale, ['tags', 'tag']));
+    const metadataTagIds = readMetadataTagIds(entry);
+    const tags = Array.from(new Set([...(fieldTags ?? []), ...(metadataTagIds ?? [])]));
 
     photos.push({
       id,
@@ -290,6 +317,7 @@ async function fetchContentfulPhotos(): Promise<PhotoItem[]> {
       imageUrl: url,
       width,
       height,
+      tags: tags.length > 0 ? tags : undefined,
       description,
       location: location ?? (locationCoordinates ? `${locationCoordinates.lat},${locationCoordinates.lon}` : undefined),
       locationLat: locationCoordinates?.lat,

@@ -19,6 +19,16 @@ body {
   color: var(--theme-text);
 }
 
+@media (min-width: 1920px) {
+  body {
+    padding-inline: clamp(3rem, 8vw, 14rem);
+  }
+
+  .desktop-layout-grid {
+    grid-template-columns: minmax(180px, 300px) minmax(0, 1fr);
+  }
+}
+
 html[data-theme='dark'] .text-black {
   color: var(--theme-text-strong) !important;
 }
