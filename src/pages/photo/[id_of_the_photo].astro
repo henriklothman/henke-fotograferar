@@ -53,7 +53,6 @@ const mediaContainerStyle = isPortraitMedia
   : `aspect-ratio: ${mediaAspectRatio};`;
 const locationQuery =
   typeof locationLat === 'number' && typeof locationLon === 'number' ? `${locationLat},${locationLon}` : location;
-const hasCoordinates = typeof locationLat === 'number' && typeof locationLon === 'number';
 const googleMapsApiKey = import.meta.env.GOOGLE_MAPS_API_KEY ?? '';
 const mapEmbedUrl =
   typeof locationLat === 'number' && typeof locationLon === 'number'
@@ -61,7 +60,7 @@ const mapEmbedUrl =
     : locationQuery
       ? `https://www.google.com/maps?q=${encodeURIComponent(locationQuery)}&z=15&output=embed`
       : null;
-const hasInteractiveMap = hasCoordinates;
+const hasInteractiveMap = typeof locationLat === 'number' && typeof locationLon === 'number';
 const hasMapMedia = Boolean(hasInteractiveMap || mapEmbedUrl);
 const mapMode = hasInteractiveMap ? 'interactive' : mapEmbedUrl ? 'fallback' : 'none';
 
