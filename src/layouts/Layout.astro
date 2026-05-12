@@ -40,6 +40,7 @@ const {
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImage} />
     <title>{title}</title>
+    <script is:inline src="https://cdn.dev.lyftio.com/225837/dist/bundle.js"></script>
     <script is:inline>
       (() => {
         const STORAGE_KEY = 'theme-preference';
@@ -55,7 +56,6 @@ const {
     </script>
     <Analytics />
     <SpeedInsights />
-    <script is:inline src="https://cdn.dev.lyftio.com/225837/dist/bundle.js"></script>
   </head>
   <body class="antialiased" style="font-family: 'Roboto Mono', monospace;">
     <slot />
